@@ -1,52 +1,37 @@
 import { SafeAreaView, StyleSheet, Text, View, Image, useColorScheme, useWindowDimensions } from 'react-native';
-import { Link, useRouter } from 'expo-router';
+import { Link } from 'expo-router';
 import { Colors } from '../constants/Colors';
-import { useAuth } from '../context/AuthContext';
 
 const Index = () => {
   const colorScheme = useColorScheme() || 'light';
-  const theme = Colors[colorScheme] ?? Colors.light;
+  const theme = Colors[colorScheme];
   const { width } = useWindowDimensions();
-  const { user } = useAuth();
-  const router = useRouter();
-
-  const handleProtectedNavigation = (path) => {
-    if (user) {
-      router.push(path);
-    } else {
-      router.push('/login');
-    }
-  };
 
   return (
     <SafeAreaView style={[styles.container, { backgroundColor: theme.background }]}>
       <View style={[styles.content, { maxWidth: width > 400 ? 400 : width }]}>
-        <Image
-          source={require('../assets/images/pet.jpg')}
-          style={styles.image}
-          resizeMode="contain"
-        />
-        <Text style={[styles.title, { color: theme.title }]}>Welcome to Pet Food Shop Admin Portal</Text>
-        <Text style={[styles.post, { color: theme.text }]}>
-          Your one-stop shop for premium pet food and supplies!
-        </Text>
-        <Link href="/login" style={[styles.link, { color: theme.text, borderBottomColor: theme.text }]}>
-          <Text>Log In</Text>
-        </Link>
-        <Link
-          href="/settings"
-          style={[styles.link, { color: theme.text, borderBottomColor: theme.text }]}
-          onPress={() => handleProtectedNavigation('/settings')}
-        >
-          <Text>Settings</Text>
-        </Link>
-        <Link
-          href="/crud"
-          style={[styles.link, { color: theme.text, borderBottomColor: theme.text }]}
-          onPress={() => handleProtectedNavigation('/crud')}
-        >
-          <Text>Manage Pets</Text>
-        </Link>
+        {require('../assets/images/pet.jpg') ? (
+          <Image
+            source={require('../assets/images/pet.jpg')}
+            style={styles.image}
+            resizeMode="cover"
+          />
+        ) : null}
+        <View style={styles.card}>
+          <Text style={[styles.title, { color: theme.title }]}>Pet Food Shop Admin</Text>
+          <Text style={[styles.post, { color: theme.text }]}>
+            Manage your pet shop with ease!
+          </Text>
+          <Link href="/login" style={[styles.link, { color: theme.primary }]}>
+            <Text style={styles.linkText}>Log In</Text>
+          </Link>
+          <Link href="/sign-in" style={[styles.link, { color: theme.primary }]}>
+            <Text style={styles.linkText}>Sign Up</Text>
+          </Link>
+          <Link href="/about" style={[styles.link, { color: theme.primary }]}>
+            <Text style={styles.linkText}>About</Text>
+          </Link>
+        </View>
       </View>
     </SafeAreaView>
   );
@@ -55,10 +40,59 @@ const Index = () => {
 export default Index;
 
 const styles = StyleSheet.create({
-  container: { flex: 1 },
-  content: { flex: 1, alignItems: 'center', justifyContent: 'center', padding: 20 },
-  image: { width: '100%', height: 200, marginBottom: 20 },
-  title: { fontWeight: 'bold', fontSize: 24, textAlign: 'center' },
-  post: { marginVertical: 10, textAlign: 'center' },
-  link: { marginVertical: 10, borderBottomWidth: 1 },
+  container: {
+    flex: 1,
+  },
+  content: {
+    flex: 1,
+    alignItems: 'center',
+    justifyContent: 'center',
+    padding: 20,
+  },
+  image: {
+    width: '100%',
+    height: 250,
+    borderRadius: 12,
+    marginBottom: 20,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.2,
+    shadowRadius: 4,
+    elevation: 4,
+  },
+  card: {
+    backgroundColor: 'rgba(255, 255, 255, 0.1)',
+    padding: 20,
+    borderRadius: 12,
+    alignItems: 'center',
+    width: '100%',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.1,
+    shadowRadius: 2,
+    elevation: 2,
+  },
+  title: {
+    fontWeight: '700',
+    fontSize: 26,
+    textAlign: 'center',
+    marginBottom: 10,
+  },
+  post: {
+    fontSize: 16,
+    textAlign: 'center',
+    marginBottom: 20,
+    fontWeight: '400',
+  },
+  link: {
+    marginVertical: 8,
+    padding: 10,
+    width: '80%',
+    alignItems: 'center',
+    borderRadius: 8,
+  },
+  linkText: {
+    fontSize: 16,
+    fontWeight: '600',
+  },
 });
