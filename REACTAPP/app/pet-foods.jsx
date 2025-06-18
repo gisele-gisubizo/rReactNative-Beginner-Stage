@@ -5,37 +5,10 @@ import { useAuth } from '../context/AuthContext';
 import { useRouter } from 'expo-router';
 import Button from '../components/Button';
 
-const petFoods = [
-  {
-    id: '1',
-    name: 'Premium Dog Kibble',
-    description: 'Nutritious kibble for adult dogs.',
-    image: '../assets/images/pet-food-1',
-    ingredients: ['Chicken', 'Rice', 'Vegetables', 'Vitamins'],
-    composition: 'Protein: 25%, Fat: 15%, Fiber: 3%',
-  },
-  {
-    id: '2',
-    name: 'Cat Wet Food',
-    description: 'Tasty wet food for cats.',
-    image: '../assets/images/pet-food-2',
-    ingredients: ['Tuna', 'Chicken', 'Water', 'Minerals'],
-    composition: 'Protein: 20%, Fat: 10%, Moisture: 75%',
-  },
-  {
-    id: '3',
-    name: 'Puppy Formula',
-    description: 'Special formula for growing puppies.',
-    image: '../assets/images/pet-food-3',
-    ingredients: ['Beef', 'Oats', 'Milk', 'Calcium'],
-    composition: 'Protein: 28%, Fat: 18%, Fiber: 2%',
-  },
-];
-
 const PetFoods = () => {
   const colorScheme = useColorScheme() || 'light';
   const theme = Colors[colorScheme];
-  const { user, signOut } = useAuth();
+  const { user, petFoods, signOut } = useAuth();
   const router = useRouter();
 
   useEffect(() => {
@@ -51,11 +24,14 @@ const PetFoods = () => {
 
   const renderFoodItem = ({ item }) => (
     <View style={[styles.card, { backgroundColor: 'rgba(255, 255, 255, 0.1)' }]}>
-      {item.image ? (
+      {item.localImage ? (
         <Image
-          source={{ uri: item.image }}
+          source={item.localImage}
           style={styles.image}
-          onError={() => Alert.alert('Error', 'Image not found: ' + item.image)}
+          onError={() => {
+            console.log('Image load failed for:', item.name);
+            Alert.alert('Error', 'Image not found: ' + item.name);
+          }}
         />
       ) : (
         <View style={[styles.image, styles.imagePlaceholder, { backgroundColor: theme.text + '20' }]}>
@@ -66,7 +42,10 @@ const PetFoods = () => {
       <Text style={[styles.description, { color: theme.text }]}>{item.description}</Text>
       <Button
         title="Read More"
-        onPress={() => router.push(`/food-details?id=${item.id}`)}
+        onPress={() => router.push({
+          pathname: '/food-details',
+          params: { food: JSON.stringify(item) }
+        })}
         style={styles.readMoreButton}
       />
     </View>
@@ -80,10 +59,11 @@ const PetFoods = () => {
         <Text style={[styles.title, { color: theme.title }]}>Pet Foods</Text>
         <Text style={[styles.subtitle, { color: theme.text }]}>Welcome, {user.email}!</Text>
         <FlatList
-          data={petFoods}
+          data={petFoods || []}
           renderItem={renderFoodItem}
           keyExtractor={(item) => item.id}
           contentContainerStyle={styles.list}
+          ListEmptyComponent={<Text style={[styles.text, { color: theme.text }]}>No pet foods available.</Text>}
         />
         <Button title="Log Out" onPress={handleSignOut} />
       </View>
@@ -126,17 +106,13 @@ const styles = StyleSheet.create({
     shadowOffset: { width: 0, height: 1 },
     shadowOpacity: 0.1,
     shadowRadius: 2,
-    elevation: 2, // Elevation on the card (View), not Image
+    elevation: 2,
   },
   image: {
     width: '100%',
-    height: 250,
+    height: 200,
     borderRadius: 12,
-    marginBottom: 20,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.2,
-    shadowRadius: 4,
+    marginBottom: 10,
   },
   imagePlaceholder: {
     justifyContent: 'center',
@@ -155,5 +131,9 @@ const styles = StyleSheet.create({
     padding: 10,
     width: '50%',
     alignSelf: 'center',
+  },
+  text: {
+    fontSize: 16,
+    textAlign: 'center',
   },
 });

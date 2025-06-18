@@ -28,9 +28,11 @@ const NavigationBar = () => {
           <TouchableOpacity style={styles.iconContainer} onPress={() => navigate('/pet-foods')}>
             <MaterialIcons name="fastfood" size={28} color={theme.text} />
           </TouchableOpacity>
-          <TouchableOpacity style={styles.iconContainer} onPress={() => navigate('/crud')}>
-            <MaterialIcons name="edit" size={28} color={theme.text} />
-          </TouchableOpacity>
+          {user.role === 'Admin' && (
+            <TouchableOpacity style={styles.iconContainer} onPress={() => navigate('/crud')}>
+              <MaterialIcons name="edit" size={28} color={theme.text} />
+            </TouchableOpacity>
+          )}
           <TouchableOpacity style={styles.iconContainer} onPress={() => navigate('/settings')}>
             <MaterialIcons name="settings" size={28} color={theme.text} />
           </TouchableOpacity>

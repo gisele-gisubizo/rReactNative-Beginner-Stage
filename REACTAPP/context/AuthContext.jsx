@@ -1,84 +1,145 @@
 import { createContext, useContext, useState, useEffect } from 'react';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
-const AuthContext = createContext({ user: null, signIn: () => {}, signUp: () => {}, signOut: () => {} });
+const AuthContext = createContext();
 
 export function AuthProvider({ children }) {
   const [user, setUser] = useState(null);
-  const [isLoading, setIsLoading] = useState(true);
+  const [petFoods, setPetFoods] = useState([]); // Store all pet foods globally
 
   useEffect(() => {
-    const loadUser = async () => {
+    const loadData = async () => {
       try {
         const storedUser = await AsyncStorage.getItem('user');
+        const storedPetFoods = await AsyncStorage.getItem('petFoods');
         if (storedUser) {
           setUser(JSON.parse(storedUser));
         }
+        if (storedPetFoods) {
+          const parsedPetFoods = JSON.parse(storedPetFoods);
+          setPetFoods(Array.isArray(parsedPetFoods) ? parsedPetFoods : []);
+        } else {
+          // Default pet foods with local images only if no data exists
+          const defaultPetFoods = [
+            {
+              id: '1',
+              name: 'Pet Food 1',
+              price: 10.99,
+              description: 'Delicious food for pets.',
+              localImage: require('../assets/images/pet-food-1.webp'),
+              postedBy: 'admin@example.com',
+            },
+            {
+              id: '2',
+              name: 'Pet Food 2',
+              price: 15.99,
+              description: 'Nutritious meal for dogs.',
+              localImage: require('../assets/images/pet-food-2.webp'),
+              postedBy: 'admin@example.com',
+            },
+            {
+              id: '3',
+              name: 'Pet Food 3',
+              price: 12.99,
+              description: 'Healthy cat food.',
+              localImage: require('../assets/images/pet-food-3.webp'),
+              postedBy: 'admin@example.com',
+            },
+            {
+              id: '4',
+              name: 'Pet Food 4',
+              price: 8.99,
+              description: 'Treats for pets.',
+              localImage: require('../assets/images/pet-food-4.webp'),
+              postedBy: 'admin@example.com',
+            },
+          ];
+          setPetFoods(defaultPetFoods);
+          await AsyncStorage.setItem('petFoods', JSON.stringify(defaultPetFoods));
+        }
       } catch (error) {
-        console.error('Error loading user:', error);
-      } finally {
-        setIsLoading(false);
+        console.error('Error loading data:', error);
+        setPetFoods([]);
       }
     };
-    loadUser();
+    loadData();
   }, []);
 
-  const signIn = async (email, password) => {
-    try {
-      const users = JSON.parse((await AsyncStorage.getItem('users')) || '[]');
-      const foundUser = users.find((u) => u.email === email && u.password === password);
-      if (foundUser) {
-        setUser({ email, id: foundUser.id });
-        await AsyncStorage.setItem('user', JSON.stringify({ email, id: foundUser.id }));
-        return true;
+  const signIn = async (email, password, role) => {
+    if (email && password) {
+      const userData = { email, role };
+      setUser(userData);
+      try {
+        await AsyncStorage.setItem('user', JSON.stringify(userData));
+      } catch (error) {
+        console.error('Error saving user:', error);
       }
-      return false;
-    } catch (error) {
-      console.error('Error signing in:', error);
-      return false;
     }
   };
 
-  const signUp = async (email, password) => {
-    try {
-      const users = JSON.parse((await AsyncStorage.getItem('users')) || '[]');
-      if (users.some((u) => u.email === email)) {
-        return false;
+  const signUp = async (email, password, role) => {
+    if (email && password) {
+      const userData = { email, role };
+      setUser(userData);
+      try {
+        await AsyncStorage.setItem('user', JSON.stringify(userData));
+      } catch (error) {
+        console.error('Error saving user:', error);
       }
-      const newUser = { id: Date.now().toString(), email, password };
-      users.push(newUser);
-      await AsyncStorage.setItem('users', JSON.stringify(users));
-      setUser({ email, id: newUser.id });
-      await AsyncStorage.setItem('user', JSON.stringify({ email, id: newUser.id }));
-      return true;
-    } catch (error) {
-      console.error('Error signing up:', error);
-      return false;
     }
   };
 
   const signOut = async () => {
+    setUser(null);
     try {
-      setUser(null);
       await AsyncStorage.removeItem('user');
     } catch (error) {
-      console.error('Error signing out:', error);
+      console.error('Error clearing user:', error);
     }
   };
 
-  if (isLoading) return null;
+  const addPetFood = async (petFood) => {
+    if (!user || user.role !== 'Admin') return;
+    const updatedPetFoods = [...petFoods, { ...petFood, id: Date.now().toString(), postedBy: user.email }];
+    setPetFoods(updatedPetFoods);
+    try {
+      await AsyncStorage.setItem('petFoods', JSON.stringify(updatedPetFoods));
+    } catch (error) {
+      console.error('Error saving pet food:', error);
+    }
+  };
+
+  const updatePetFood = async (id, updatedPetFood) => {
+    if (!user || user.role !== 'Admin') return;
+    const updatedPetFoods = petFoods.map((food) =>
+      food.id === id ? { ...food, ...updatedPetFood } : food
+    );
+    setPetFoods(updatedPetFoods);
+    try {
+      await AsyncStorage.setItem('petFoods', JSON.stringify(updatedPetFoods));
+    } catch (error) {
+      console.error('Error updating pet food:', error);
+    }
+  };
+
+  const deletePetFood = async (id) => {
+    if (!user || user.role !== 'Admin') return;
+    const updatedPetFoods = petFoods.filter((food) => food.id !== id);
+    setPetFoods(updatedPetFoods);
+    try {
+      await AsyncStorage.setItem('petFoods', JSON.stringify(updatedPetFoods));
+    } catch (error) {
+      console.error('Error deleting pet food:', error);
+    }
+  };
 
   return (
-    <AuthContext.Provider value={{ user, signIn, signUp, signOut }}>
+    <AuthContext.Provider value={{ user, petFoods, signIn, signUp, signOut, addPetFood, updatePetFood, deletePetFood }}>
       {children}
     </AuthContext.Provider>
   );
 }
 
-export const useAuth = () => {
-  const context = useContext(AuthContext);
-  if (!context) {
-    throw new Error('useAuth must be used within an AuthProvider');
-  }
-  return context;
-};
+export function useAuth() {
+  return useContext(AuthContext);
+}

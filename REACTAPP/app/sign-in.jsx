@@ -1,120 +1,128 @@
-import { SafeAreaView, StyleSheet, Text, TextInput, View, useColorScheme, useWindowDimensions, Alert } from 'react-native';
-import { Link, useRouter } from 'expo-router';
+import { SafeAreaView, StyleSheet, Text, View, TextInput, useColorScheme, TouchableOpacity } from 'react-native';
 import { useState } from 'react';
 import { Colors } from '../constants/Colors';
-import Button from '../components/Button';
 import { useAuth } from '../context/AuthContext';
+import { useRouter } from 'expo-router';
 
-const SignIn = () => {
+const Signup = () => {
   const colorScheme = useColorScheme() || 'light';
   const theme = Colors[colorScheme];
-  const { width } = useWindowDimensions();
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
   const { signUp } = useAuth();
   const router = useRouter();
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+  const [role, setRole] = useState('User'); // Default role
 
-  const handleSignUp = async () => {
-    if (!email.trim() || !password.trim()) {
-      Alert.alert('Error', 'Please fill all fields');
-      return;
-    }
-    const success = await signUp(email, password);
-    if (success) {
-      Alert.alert('Success', 'Signed up and logged in!');
-      router.push('/dashboard');
-    } else {
-      Alert.alert('Error', 'Email already exists');
-    }
+  const handleSignup = () => {
+    signUp(email, password, role);
+    router.push('/pet-foods'); // Redirect to pet-foods after signup
   };
 
   return (
     <SafeAreaView style={[styles.container, { backgroundColor: theme.background }]}>
-      <View style={[styles.content, { maxWidth: width > 400 ? 400 : width }]}>
-        <View style={[styles.card, { backgroundColor: 'rgba(255, 255, 255, 0.1)' }]}>
-          <Text style={[styles.title, { color: theme.title }]}>Sign Up</Text>
-          <Text style={[styles.text, { color: theme.text }]}>Create a pet shop account</Text>
-          <TextInput
-            style={[styles.input, { color: theme.text, borderColor: theme.text, backgroundColor: theme.background }]}
-            placeholder="Email"
-            value={email}
-            onChangeText={setEmail}
-            placeholderTextColor={theme.text + '80'}
-            autoCapitalize="none"
-            keyboardType="email-address"
-          />
-          <TextInput
-            style={[styles.input, { color: theme.text, borderColor: theme.text, backgroundColor: theme.background }]}
-            placeholder="Password"
-            value={password}
-            onChangeText={setPassword}
-            placeholderTextColor={theme.text + '80'}
-            secureTextEntry
-          />
-          <Button title="Sign Up" onPress={handleSignUp} />
-          <Link href="/login" style={[styles.link, { color: theme.primary }]}>
-            <Text style={styles.linkText}>Already have an account? Log In</Text>
-          </Link>
+      <View style={styles.content}>
+        <Text style={[styles.title, { color: theme.title }]}>Sign Up</Text>
+        <TextInput
+          style={[styles.input, { color: theme.text, borderColor: theme.text }]}
+          placeholder="Email"
+          placeholderTextColor={theme.text + '80'}
+          value={email}
+          onChangeText={setEmail}
+          keyboardType="email-address"
+          autoCapitalize="none"
+        />
+        <TextInput
+          style={[styles.input, { color: theme.text, borderColor: theme.text }]}
+          placeholder="Password"
+          placeholderTextColor={theme.text + '80'}
+          value={password}
+          onChangeText={setPassword}
+          secureTextEntry
+        />
+        <View style={styles.roleContainer}>
+          <TouchableOpacity
+            style={[styles.roleButton, role === 'User' && styles.selectedRole]}
+            onPress={() => setRole('User')}
+          >
+            <Text style={[styles.roleText, { color: role === 'User' ? '#fff' : theme.text }]}>User</Text>
+          </TouchableOpacity>
+          <TouchableOpacity
+            style={[styles.roleButton, role === 'Admin' && styles.selectedRole]}
+            onPress={() => setRole('Admin')}
+          >
+            <Text style={[styles.roleText, { color: role === 'Admin' ? '#fff' : theme.text }]}>Admin</Text>
+          </TouchableOpacity>
         </View>
+        <TouchableOpacity style={styles.button} onPress={handleSignup}>
+          <Text style={styles.buttonText}>Sign Up</Text>
+        </TouchableOpacity>
+        <TouchableOpacity onPress={() => router.push('/login')}>
+          <Text style={[styles.link, { color: theme.text }]}>Already have an account? Login</Text>
+        </TouchableOpacity>
       </View>
     </SafeAreaView>
   );
 };
 
-export default SignIn;
+export default Signup;
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
+    justifyContent: 'center',
   },
   content: {
-    flex: 1,
-    alignItems: 'center',
-    justifyContent: 'center',
     padding: 20,
-  },
-  card: {
-    padding: 20,
-    borderRadius: 12,
-    width: '100%',
-    alignItems: 'center',
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.1,
-    shadowRadius: 2,
-    elevation: 2,
   },
   title: {
     fontWeight: '700',
     fontSize: 28,
-    marginBottom: 10,
-    textAlign: 'center',
-  },
-  text: {
-    fontSize: 16,
-    textAlign: 'center',
     marginBottom: 20,
-    fontWeight: '400',
+    textAlign: 'center',
+    textTransform: 'uppercase',
   },
   input: {
-    width: '100%',
+    height: 50,
     borderWidth: 1,
-    padding: 12,
-    marginVertical: 10,
     borderRadius: 8,
-    fontSize: 16,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.1,
-    shadowRadius: 2,
-    elevation: 2,
+    marginBottom: 15,
+    paddingHorizontal: 10,
   },
-  link: {
-    marginVertical: 10,
+  roleContainer: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    marginBottom: 15,
+  },
+  roleButton: {
+    flex: 1,
     padding: 10,
+    borderWidth: 1,
+    borderRadius: 8,
+    borderColor: '#ccc',
+    alignItems: 'center',
+    marginHorizontal: 5,
   },
-  linkText: {
+  selectedRole: {
+    backgroundColor: '#007AFF',
+    borderColor: '#007AFF',
+  },
+  roleText: {
+    fontSize: 16,
+  },
+  button: {
+    backgroundColor: '#007AFF',
+    padding: 15,
+    borderRadius: 8,
+    alignItems: 'center',
+    marginBottom: 10,
+  },
+  buttonText: {
+    color: '#fff',
     fontSize: 16,
     fontWeight: '600',
+  },
+  link: {
+    textAlign: 'center',
+    marginTop: 10,
   },
 });

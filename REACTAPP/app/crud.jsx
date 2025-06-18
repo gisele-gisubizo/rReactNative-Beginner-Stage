@@ -8,55 +8,61 @@ import { useRouter } from 'expo-router';
 const Crud = () => {
   const colorScheme = useColorScheme() || 'light';
   const theme = Colors[colorScheme];
-  const { user } = useAuth();
+  const { user, petFoods, addPetFood, updatePetFood, deletePetFood } = useAuth();
   const router = useRouter();
-  const [pets, setPets] = useState([
-    { id: '1', name: 'Dog', price: 100 },
-    { id: '2', name: 'Cat', price: 80 },
-  ]);
   const [name, setName] = useState('');
   const [price, setPrice] = useState('');
-  const [editingPet, setEditingPet] = useState(null);
+  const [description, setDescription] = useState('');
+  const [imageUrl, setImageUrl] = useState('');
+  const [editingFood, setEditingFood] = useState(null);
 
   useEffect(() => {
-    if (!user) {
-      router.push('/login');
+    if (!user || user.role !== 'Admin') {
+      router.push('/pet-foods');
     }
   }, [user, router]);
 
-  const addOrUpdatePet = () => {
-    if (!name.trim() || !price.trim()) return;
-    if (editingPet) {
-      setPets(pets.map((pet) =>
-        pet.id === editingPet.id ? { ...pet, name, price: parseFloat(price) || 0 } : pet
-      ));
-      setEditingPet(null);
+  const addOrUpdatePetFood = () => {
+    if (!name.trim() || !price.trim() || !description.trim()) return;
+    const petFoodData = {
+      name,
+      price: parseFloat(price) || 0,
+      description,
+      imageUrl: imageUrl.trim() || null,
+    };
+    if (editingFood) {
+      updatePetFood(editingFood.id, petFoodData);
+      setEditingFood(null);
     } else {
-      setPets([...pets, { id: Date.now().toString(), name, price: parseFloat(price) || 0 }]);
+      addPetFood(petFoodData);
     }
     setName('');
     setPrice('');
+    setDescription('');
+    setImageUrl('');
   };
 
-  const editPet = (pet) => {
-    setEditingPet(pet);
-    setName(pet.name);
-    setPrice(pet.price.toString());
+  const editPetFood = (food) => {
+    setEditingFood(food);
+    setName(food.name);
+    setPrice(food.price.toString());
+    setDescription(food.description);
+    setImageUrl(food.imageUrl || '');
   };
 
-  const deletePet = (id) => {
-    setPets(pets.filter((pet) => pet.id !== id));
+  const handleDeletePetFood = (id) => {
+    deletePetFood(id);
   };
 
-  if (!user) return null;
+  if (!user || user.role !== 'Admin') return null;
 
   return (
     <SafeAreaView style={[styles.container, { backgroundColor: theme.background }]}>
       <View style={styles.content}>
-        <Text style={[styles.title, { color: theme.title }]}>Manage Pets</Text>
+        <Text style={[styles.title, { color: theme.title }]}>Manage Pet Foods</Text>
         <TextInput
           style={[styles.input, { color: theme.text, borderColor: theme.text, backgroundColor: theme.background }]}
-          placeholder="Pet Name"
+          placeholder="Pet Food Name"
           value={name}
           onChangeText={setName}
           placeholderTextColor={theme.text + '80'}
@@ -69,16 +75,32 @@ const Crud = () => {
           placeholderTextColor={theme.text + '80'}
           keyboardType="numeric"
         />
-        <Button title={editingPet ? 'Update Pet' : 'Add Pet'} onPress={addOrUpdatePet} />
+        <TextInput
+          style={[styles.input, { color: theme.text, borderColor: theme.text, backgroundColor: theme.background }]}
+          placeholder="Description"
+          value={description}
+          onChangeText={setDescription}
+          placeholderTextColor={theme.text + '80'}
+          multiline
+        />
+        <TextInput
+          style={[styles.input, { color: theme.text, borderColor: theme.text, backgroundColor: theme.background }]}
+          placeholder="Image URL (optional)"
+          value={imageUrl}
+          onChangeText={setImageUrl}
+          placeholderTextColor={theme.text + '80'}
+          keyboardType="url"
+        />
+        <Button title={editingFood ? 'Update Pet Food' : 'Add Pet Food'} onPress={addOrUpdatePetFood} />
         <FlatList
-          data={pets}
+          data={petFoods || []}
           keyExtractor={(item) => item.id}
           renderItem={({ item }) => (
             <View style={[styles.item, { backgroundColor: theme.background, borderColor: theme.text + '33' }]}>
               <Text style={[styles.text, { color: theme.text }]}>{item.name} - ${item.price}</Text>
               <View style={styles.actions}>
-                <Button title="Edit" onPress={() => editPet(item)} style={styles.actionButton} />
-                <Button title="Delete" onPress={() => deletePet(item.id)} style={[styles.actionButton, { backgroundColor: '#FF3B30' }]} />
+                <Button title="Edit" onPress={() => editPetFood(item)} style={styles.actionButton} />
+                <Button title="Delete" onPress={() => handleDeletePetFood(item.id)} style={[styles.actionButton, { backgroundColor: '#FF3B30' }]} />
               </View>
             </View>
           )}
