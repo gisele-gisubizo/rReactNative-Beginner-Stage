@@ -34,7 +34,7 @@ const Dashboard = () => {
     <SafeAreaView style={[styles.container, { backgroundColor: theme.background }]}>
       <View style={styles.content}>
         <Text style={[styles.title, { color: theme.title }]}>Dashboard</Text>
-        <Text style={[styles.subtitle, { color: theme.text }]}>Welcome, {user.email}!</Text>
+        <Text style={[styles.subtitle, { color: theme.text }]}>Welcome, {user.name}!</Text>
         <View style={[styles.card, { backgroundColor: 'rgba(255, 255, 255, 0.1)' }]}>
           <Text style={[styles.stat, { color: theme.text }]}>Total Pets: {stats.totalPets}</Text>
           <Text style={[styles.stat, { color: theme.text }]}>Revenue: ${stats.totalRevenue}</Text>

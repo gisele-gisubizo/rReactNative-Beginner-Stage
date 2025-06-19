@@ -5,6 +5,14 @@ import { useAuth } from '../context/AuthContext';
 import { useRouter } from 'expo-router';
 import Button from '../components/Button';
 
+// Static image mapping
+const imageMap = {
+  'pet-food-1.webp': require('../assets/images/pet-food-1.webp'),
+  'pet-food-2.webp': require('../assets/images/pet-food-2.webp'),
+  'pet-food-3.webp': require('../assets/images/pet-food-3.webp'),
+  'pet-food-4.webp': require('../assets/images/pet-food-4.webp'),
+};
+
 const PetFoods = () => {
   const colorScheme = useColorScheme() || 'light';
   const theme = Colors[colorScheme];
@@ -22,34 +30,44 @@ const PetFoods = () => {
     router.push('/login');
   };
 
-  const renderFoodItem = ({ item }) => (
-    <View style={[styles.card, { backgroundColor: 'rgba(255, 255, 255, 0.1)' }]}>
-      {item.localImage ? (
-        <Image
-          source={item.localImage}
-          style={styles.image}
-          onError={() => {
-            console.log('Image load failed for:', item.name);
-            Alert.alert('Error', 'Image not found: ' + item.name);
-          }}
+  const renderFoodItem = ({ item }) => {
+    console.log('Rendering item:', item); // Debug log
+    const imageSource = item.imagePath ? imageMap[item.imagePath] : null;
+    return (
+      <View style={[styles.card, { backgroundColor: 'rgba(255, 255, 255, 0.1)' }]}>
+        {imageSource ? (
+          <Image
+            source={imageSource}
+            style={styles.image}
+            onError={() => {
+              console.log('Image load failed for:', item.name);
+              Alert.alert('Error', 'Image not found: ' + item.name);
+            }}
+          />
+        ) : (
+          <View style={[styles.image, styles.imagePlaceholder, { backgroundColor: theme.text + '20' }]}>
+            <Text style={{ color: theme.text }}>No Image</Text>
+          </View>
+        )}
+        <Text style={[styles.foodName, { color: theme.text }]}>{item.name}</Text>
+        <Text style={[styles.description, { color: theme.text }]}>{item.description}</Text>
+        <Button
+          title="Read More"
+          onPress={() => router.push({
+            pathname: '/food-details',
+            params: {
+              name: item.name,
+              price: item.price,
+              description: item.description,
+              imagePath: item.imagePath,
+              postedBy: item.postedBy
+            }
+          })}
+          style={styles.readMoreButton}
         />
-      ) : (
-        <View style={[styles.image, styles.imagePlaceholder, { backgroundColor: theme.text + '20' }]}>
-          <Text style={{ color: theme.text }}>No Image</Text>
-        </View>
-      )}
-      <Text style={[styles.foodName, { color: theme.text }]}>{item.name}</Text>
-      <Text style={[styles.description, { color: theme.text }]}>{item.description}</Text>
-      <Button
-        title="Read More"
-        onPress={() => router.push({
-          pathname: '/food-details',
-          params: { food: JSON.stringify(item) }
-        })}
-        style={styles.readMoreButton}
-      />
-    </View>
-  );
+      </View>
+    );
+  };
 
   if (!user) return null;
 
@@ -57,7 +75,7 @@ const PetFoods = () => {
     <SafeAreaView style={[styles.container, { backgroundColor: theme.background }]}>
       <View style={styles.content}>
         <Text style={[styles.title, { color: theme.title }]}>Pet Foods</Text>
-        <Text style={[styles.subtitle, { color: theme.text }]}>Welcome, {user.email}!</Text>
+        <Text style={[styles.subtitle, { color: theme.text }]}>Welcome, {user.name}!</Text>
         <FlatList
           data={petFoods || []}
           renderItem={renderFoodItem}
@@ -109,7 +127,7 @@ const styles = StyleSheet.create({
     elevation: 2,
   },
   image: {
-    width: '100%',
+    width: 300,
     height: 200,
     borderRadius: 12,
     marginBottom: 10,

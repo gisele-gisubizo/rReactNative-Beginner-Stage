@@ -3,25 +3,74 @@ import { useState } from 'react';
 import { Colors } from '../constants/Colors';
 import { useAuth } from '../context/AuthContext';
 import { useRouter } from 'expo-router';
+import { Alert } from 'react-native';
 
 const Signup = () => {
   const colorScheme = useColorScheme() || 'light';
   const theme = Colors[colorScheme];
-  const { signUp } = useAuth();
+  const { signUp, forgotPassword } = useAuth();
   const router = useRouter();
+  const [name, setName] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
-  const [role, setRole] = useState('User'); // Default role
+  const [role, setRole] = useState('User');
+  const [adminKey, setAdminKey] = useState('');
+  const [error, setError] = useState('');
 
-  const handleSignup = () => {
-    signUp(email, password, role);
-    router.push('/pet-foods'); // Redirect to pet-foods after signup
+  const handleSignup = async () => {
+    console.log('handleSignup called with:', { name, email, password, role, adminKey });
+    setError('');
+    if (!name || !/^[a-zA-Z\s]{2,100}$/.test(name)) {
+      setError('Name must be 2-100 characters with letters and spaces only');
+      return;
+    }
+    if (!password || !/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d).{8,}$/.test(password)) {
+      setError('Password must be at least 8 characters with uppercase, lowercase, and a number');
+      return;
+    }
+
+    try {
+      const success = await signUp(name, email, password, role, adminKey);
+      console.log('signUp result:', success);
+      if (success) {
+        router.push('/login');
+      }
+    } catch (err) {
+      console.error('Signup error:', err.message);
+      setError(err.message || 'Signup failed. Email may already exist or invalid admin key.');
+    }
+  };
+
+  const handleForgotPassword = async () => {
+    setError('');
+    if (!email) {
+      setError('Please enter an email address.');
+      return;
+    }
+    try {
+      const success = await forgotPassword(email);
+      if (success) {
+        Alert.alert('Success', 'Password reset email sent. Check your inbox.');
+      }
+    } catch (err) {
+      console.error('Forgot password error:', err.message);
+      setError(err.message || 'Failed to send password reset email.');
+    }
   };
 
   return (
     <SafeAreaView style={[styles.container, { backgroundColor: theme.background }]}>
       <View style={styles.content}>
         <Text style={[styles.title, { color: theme.title }]}>Sign Up</Text>
+        {error ? <Text style={[styles.error, { color: '#FF3B30' }]}>{error}</Text> : null}
+        <TextInput
+          style={[styles.input, { color: theme.text, borderColor: theme.text }]}
+          placeholder="Name"
+          placeholderTextColor={theme.text + '80'}
+          value={name}
+          onChangeText={setName}
+          autoCapitalize="words"
+        />
         <TextInput
           style={[styles.input, { color: theme.text, borderColor: theme.text }]}
           placeholder="Email"
@@ -39,6 +88,16 @@ const Signup = () => {
           onChangeText={setPassword}
           secureTextEntry
         />
+        {role === 'Admin' && (
+          <TextInput
+            style={[styles.input, { color: theme.text, borderColor: theme.text }]}
+            placeholder="Admin Key"
+            placeholderTextColor={theme.text + '80'}
+            value={adminKey}
+            onChangeText={setAdminKey}
+            secureTextEntry
+          />
+        )}
         <View style={styles.roleContainer}>
           <TouchableOpacity
             style={[styles.roleButton, role === 'User' && styles.selectedRole]}
@@ -53,11 +112,20 @@ const Signup = () => {
             <Text style={[styles.roleText, { color: role === 'Admin' ? '#fff' : theme.text }]}>Admin</Text>
           </TouchableOpacity>
         </View>
-        <TouchableOpacity style={styles.button} onPress={handleSignup}>
+        <TouchableOpacity
+          style={styles.button}
+          onPress={() => {
+            console.log('Sign Up button pressed');
+            handleSignup();
+          }}
+        >
           <Text style={styles.buttonText}>Sign Up</Text>
         </TouchableOpacity>
         <TouchableOpacity onPress={() => router.push('/login')}>
           <Text style={[styles.link, { color: theme.text }]}>Already have an account? Login</Text>
+        </TouchableOpacity>
+        <TouchableOpacity onPress={handleForgotPassword}>
+          <Text style={[styles.link, { color: theme.text }]}>Forgot Password?</Text>
         </TouchableOpacity>
       </View>
     </SafeAreaView>
@@ -80,6 +148,11 @@ const styles = StyleSheet.create({
     marginBottom: 20,
     textAlign: 'center',
     textTransform: 'uppercase',
+  },
+  error: {
+    fontSize: 14,
+    marginBottom: 10,
+    textAlign: 'center',
   },
   input: {
     height: 50,

@@ -72,6 +72,7 @@ export default function Layout() {
         <Stack.Screen name="pet-foods" options={{ title: 'Pet Foods', headerShown: true }} />
         <Stack.Screen name="food-details" options={{ title: 'Pet Food Details', headerShown: true }} />
         <Stack.Screen name="crud" options={{ title: 'Manage Pet Foods', headerShown: true }} />
+        <Stack.Screen name="dashboard" options={{ title: 'Dashboard', headerShown: true }} />
         <Stack.Screen name="settings" options={{ title: 'Settings', headerShown: true }} />
         <Stack.Screen name="about" options={{ title: 'About', headerShown: true }} />
       </Stack>

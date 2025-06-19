@@ -2,25 +2,30 @@ import { SafeAreaView, StyleSheet, Text, View, useColorScheme, Image, Alert } fr
 import { useEffect } from 'react';
 import { Colors } from '../constants/Colors';
 import { useAuth } from '../context/AuthContext';
-import { useRouter } from 'expo-router';
+import { useLocalSearchParams } from 'expo-router';
+
+// Static image mapping
+const imageMap = {
+  'pet-food-1.webp': require('../assets/images/pet-food-1.webp'),
+  'pet-food-2.webp': require('../assets/images/pet-food-2.webp'),
+  'pet-food-3.webp': require('../assets/images/pet-food-3.webp'),
+  'pet-food-4.webp': require('../assets/images/pet-food-4.webp'),
+};
 
 const FoodDetails = () => {
   const colorScheme = useColorScheme() || 'light';
   const theme = Colors[colorScheme];
   const { user } = useAuth();
-  const router = useRouter();
-  const params = router.params || {};
-  const foodString = params.food || '{}';
-  const food = foodString ? JSON.parse(foodString) : null;
+  const { name, price, description, imagePath, postedBy } = useLocalSearchParams();
 
   useEffect(() => {
     if (!user) {
-      router.push('/login');
+      console.log('User not authenticated, redirecting to /login');
     }
-    console.log('Parsed food:', food); // Debug log
-  }, [user, router]);
+    console.log('Received params:', { name, price, description, imagePath, postedBy }); // Debug log
+  }, [user]);
 
-  if (!user || !food) {
+  if (!user || !name) {
     return (
       <SafeAreaView style={[styles.container, { backgroundColor: theme.background }]}>
         <View style={styles.content}>
@@ -30,17 +35,19 @@ const FoodDetails = () => {
     );
   }
 
+  const imageSource = imagePath ? imageMap[imagePath] : null;
+
   return (
     <SafeAreaView style={[styles.container, { backgroundColor: theme.background }]}>
       <View style={styles.content}>
-        <Text style={[styles.title, { color: theme.title }]}>{food.name}</Text>
-        {food.localImage ? (
+        <Text style={[styles.title, { color: theme.title }]}>{name}</Text>
+        {imageSource ? (
           <Image
-            source={food.localImage}
+            source={imageSource}
             style={styles.image}
             onError={() => {
-              console.log('Image load failed for:', food.name);
-              Alert.alert('Error', 'Image not found: ' + food.name);
+              console.log('Image load failed for:', name);
+              Alert.alert('Error', 'Image not found: ' + name);
             }}
           />
         ) : (
@@ -50,11 +57,15 @@ const FoodDetails = () => {
         )}
         <View style={[styles.card, { backgroundColor: 'rgba(255, 255, 255, 0.1)' }]}>
           <Text style={[styles.sectionTitle, { color: theme.text }]}>Price</Text>
-          <Text style={[styles.text, { color: theme.text }]}>${food.price}</Text>
+          <Text style={[styles.text, { color: theme.text }]}>${price || 'N/A'}</Text>
           <Text style={[styles.sectionTitle, { color: theme.text }]}>Description</Text>
-          <Text style={[styles.text, { color: theme.text }]}>{food.description}</Text>
-          <Text style={[styles.sectionTitle, { color: theme.text }]}>Posted By</Text>
-          <Text style={[styles.text, { color: theme.text }]}>{food.postedBy || 'Unknown'}</Text>
+          <Text style={[styles.text, { color: theme.text }]}>{description || 'N/A'}</Text>
+          {user.role === 'Admin' && (
+            <>
+              <Text style={[styles.sectionTitle, { color: theme.text }]}>Posted By</Text>
+              <Text style={[styles.text, { color: theme.text }]}>{postedBy || 'Unknown'}</Text>
+            </>
+          )}
         </View>
       </View>
     </SafeAreaView>
@@ -79,7 +90,7 @@ const styles = StyleSheet.create({
     textTransform: 'uppercase',
   },
   image: {
-    width: '100%',
+    width: 300,
     height: 200,
     borderRadius: 12,
     marginBottom: 20,
