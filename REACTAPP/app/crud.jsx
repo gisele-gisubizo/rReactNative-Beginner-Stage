@@ -17,8 +17,8 @@ const Crud = () => {
   const [editingFood, setEditingFood] = useState(null);
 
   useEffect(() => {
-    if (!user || user.role !== 'Admin') {
-      router.push('/pet-foods');
+    if (!user || user.role !== 'admin') { // Changed from 'Admin' to 'admin' for consistency
+      router.push('/pet-foods'); // Redirect non-admins to a user view
     }
   }, [user, router]);
 
@@ -54,7 +54,9 @@ const Crud = () => {
     deletePetFood(id);
   };
 
-  if (!user || user.role !== 'Admin') return null;
+  if (!user || user.role !== 'admin') { // Changed from 'Admin' to 'admin' for consistency
+    return null; // Prevent rendering if not authorized
+  }
 
   return (
     <SafeAreaView style={[styles.container, { backgroundColor: theme.background }]}>

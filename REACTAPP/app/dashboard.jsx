@@ -18,17 +18,19 @@ const Dashboard = () => {
   });
 
   useEffect(() => {
-    if (!user) {
-      router.push('/login');
+    if (!user || user.role !== 'admin') {
+      router.push('/pet-foods'); // Redirect non-admins to a user view
     }
   }, [user, router]);
+
+  if (!user || user.role !== 'admin') {
+    return null; // Prevent rendering if not authorized
+  }
 
   const handleSignOut = () => {
     signOut();
     router.push('/login');
   };
-
-  if (!user) return null;
 
   return (
     <SafeAreaView style={[styles.container, { backgroundColor: theme.background }]}>

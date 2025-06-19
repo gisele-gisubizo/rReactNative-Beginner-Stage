@@ -5,7 +5,7 @@ import { Colors } from '../constants/Colors';
 import * as Font from 'expo-font';
 import { AuthProvider } from '../context/AuthContext';
 import * as SplashScreen from 'expo-splash-screen';
-import NavigationBar from '../components/NavigationBar';
+import NavigationBar from '../app/NavigationBar';
 import { MaterialIcons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
 import AsyncStorage from '@react-native-async-storage/async-storage';
