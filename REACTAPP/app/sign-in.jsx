@@ -13,7 +13,7 @@ const Signup = () => {
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
-  const [role, setRole] = useState('User');
+  const [role, setRole] = useState('user'); // Changed to lowercase
   const [adminKey, setAdminKey] = useState('');
   const [error, setError] = useState('');
 
@@ -33,11 +33,19 @@ const Signup = () => {
       const success = await signUp(name, email, password, role, adminKey);
       console.log('signUp result:', success);
       if (success) {
+        console.log('Navigating to /login');
         router.push('/login');
+      } else {
+        console.log('signUp returned false, no navigation');
+        setError('Signup failed. Please try again.');
       }
     } catch (err) {
       console.error('Signup error:', err.message);
-      setError(err.message || 'Signup failed. Email may already exist or invalid admin key.');
+      if (err.message.includes('timed out') || err.message.includes('network')) {
+        setError('Unable to connect to server. Please check your internet connection or try again later.');
+      } else {
+        setError(err.message || 'Signup failed. Email may already exist or invalid admin key.');
+      }
     }
   };
 
@@ -88,7 +96,7 @@ const Signup = () => {
           onChangeText={setPassword}
           secureTextEntry
         />
-        {role === 'Admin' && (
+        {role === 'admin' && (
           <TextInput
             style={[styles.input, { color: theme.text, borderColor: theme.text }]}
             placeholder="Admin Key"
@@ -100,16 +108,16 @@ const Signup = () => {
         )}
         <View style={styles.roleContainer}>
           <TouchableOpacity
-            style={[styles.roleButton, role === 'User' && styles.selectedRole]}
-            onPress={() => setRole('User')}
+            style={[styles.roleButton, role === 'user' && styles.selectedRole]}
+            onPress={() => setRole('user')} // Changed to lowercase
           >
-            <Text style={[styles.roleText, { color: role === 'User' ? '#fff' : theme.text }]}>User</Text>
+            <Text style={[styles.roleText, { color: role === 'user' ? '#fff' : theme.text }]}>User</Text>
           </TouchableOpacity>
           <TouchableOpacity
-            style={[styles.roleButton, role === 'Admin' && styles.selectedRole]}
-            onPress={() => setRole('Admin')}
+            style={[styles.roleButton, role === 'admin' && styles.selectedRole]}
+            onPress={() => setRole('admin')} // Changed to lowercase
           >
-            <Text style={[styles.roleText, { color: role === 'Admin' ? '#fff' : theme.text }]}>Admin</Text>
+            <Text style={[styles.roleText, { color: role === 'admin' ? '#fff' : theme.text }]}>Admin</Text>
           </TouchableOpacity>
         </View>
         <TouchableOpacity
