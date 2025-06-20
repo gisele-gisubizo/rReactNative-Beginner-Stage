@@ -1,118 +1,97 @@
-import { SafeAreaView, StyleSheet, Text, View, TextInput, useColorScheme, TouchableOpacity, ActivityIndicator } from 'react-native';
 import { useState, useCallback } from 'react';
-import { Colors } from '../constants/Colors';
+import { SafeAreaView, StyleSheet, Text, TextInput, View, Alert, useColorScheme } from 'react-native';
+import { Colors } from '../constants/Colors.jsx';
+import Button from '../components/Button';
 import { useAuth } from '../context/AuthContext';
-import { useRouter } from 'expo-router';
-import { Alert } from 'react-native';
+import { useRouter, Link } from 'expo-router';
 import { debounce } from 'lodash';
 
 const Login = () => {
   const colorScheme = useColorScheme() || 'light';
   const theme = Colors[colorScheme];
-  const { signIn, forgotPassword } = useAuth();
+  const { login, isLoading } = useAuth();
   const router = useRouter();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
-  const [error, setError] = useState('');
-  const [isSubmitting, setIsSubmitting] = useState(false);
 
   const handleLogin = async () => {
     console.log('handleLogin called with:', { email, password });
-    setError('');
-    setIsSubmitting(true);
     try {
-      const success = await signIn(email, password);
-      console.log('signIn result:', success);
-      if (success) {
-        console.log('Navigating to /pet-foods');
-        router.push('/pet-foods');
-      } else {
-        console.log('signIn returned false, no navigation');
-        setError('Login failed. Please check your credentials.');
+      const result = await login(email, password);
+      console.log('login result:', result);
+      if (result) {
+        router.push('/articles');
       }
-    } catch (err) {
-      console.error('Login error:', err.message);
-      setError(err.message || 'Invalid credentials.');
-    } finally {
-      setIsSubmitting(false);
+    } catch (error) {
+      console.error('Login error:', error.message);
+      Alert.alert('Error', error.message || 'Failed to log in');
     }
   };
 
-  const debouncedHandleLogin = useCallback(debounce(handleLogin, 1000, { leading: true, trailing: false }), [email, password]);
-
-  const handleForgotPassword = async () => {
-    setError('');
-    if (!email) {
-      setError('Please enter an email address.');
-      return;
-    }
-    try {
-      const success = await forgotPassword(email);
-      if (success) {
-        Alert.alert('Success', 'Password reset email sent. Check your inbox.');
-      }
-    } catch (err) {
-      console.error('Forgot password error:', err.message);
-      setError(err.message || 'Failed to send password reset email.');
-    }
-  };
+  const debouncedHandleLogin = useCallback(debounce(handleLogin, 1000, { leading: true, trailing: false }), [email, password, login]);
 
   return (
     <SafeAreaView style={[styles.container, { backgroundColor: theme.background }]}>
       <View style={styles.content}>
+        <Text style={[styles.masthead, { color: theme.title }]}>News Column</Text>
         <Text style={[styles.title, { color: theme.title }]}>Login</Text>
-        {error ? <Text style={[styles.error, { color: '#FF3B30' }]}>{error}</Text> : null}
         <TextInput
           style={[styles.input, { color: theme.text, borderColor: theme.text }]}
           placeholder="Email"
-          placeholderTextColor={theme.text + '80'}
           value={email}
           onChangeText={setEmail}
           keyboardType="email-address"
           autoCapitalize="none"
+          placeholderTextColor={theme.text + '80'}
         />
         <TextInput
           style={[styles.input, { color: theme.text, borderColor: theme.text }]}
           placeholder="Password"
-          placeholderTextColor={theme.text + '80'}
           value={password}
           onChangeText={setPassword}
           secureTextEntry
+          autoCapitalize="none"
+          placeholderTextColor={theme.text + '80'}
         />
-        <TouchableOpacity
-          style={[styles.button, isSubmitting && styles.buttonDisabled]}
+        <Button
+          title="Login"
           onPress={() => {
             console.log('Login button pressed');
             debouncedHandleLogin();
           }}
-          disabled={isSubmitting}
-        >
-          {isSubmitting ? (
-            <ActivityIndicator color="#fff" />
-          ) : (
-            <Text style={styles.buttonText}>Login</Text>
-          )}
-        </TouchableOpacity>
-        <TouchableOpacity onPress={() => router.push('/sign-in')}>
-          <Text style={[styles.link, { color: theme.text }]}>Don't have an account? Sign up</Text>
-        </TouchableOpacity>
-        <TouchableOpacity onPress={handleForgotPassword}>
-          <Text style={[styles.link, { color: theme.text }]}>Forgot Password?</Text>
-        </TouchableOpacity>
+          disabled={isLoading}
+        />
+        <Link href="/sign-in" style={[styles.link, { color: theme.primary }]}>
+          <Text style={styles.linkText}>Don't have an account? Sign Up</Text>
+        </Link>
+        <Link href="/verify-email" style={[styles.link, { color: theme.primary }]}>
+          <Text style={styles.linkText}>Verify Email</Text>
+        </Link>
+        <Link href="/forgot-password" style={[styles.link, { color: theme.primary }]}>
+          <Text style={styles.linkText}>Forgot Password?</Text>
+        </Link>
       </View>
     </SafeAreaView>
   );
 };
 
-export default Login;
-
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    justifyContent: 'center',
   },
   content: {
+    flex: 1,
     padding: 20,
+    justifyContent: 'center',
+  },
+  masthead: {
+    fontFamily: 'Playfair Display',
+    fontWeight: '900',
+    fontSize: 40,
+    textAlign: 'center',
+    marginBottom: 20,
+    textTransform: 'uppercase',
+    letterSpacing: 1.5,
   },
   title: {
     fontWeight: '700',
@@ -121,35 +100,21 @@ const styles = StyleSheet.create({
     textAlign: 'center',
     textTransform: 'uppercase',
   },
-  error: {
-    fontSize: 14,
-    marginBottom: 10,
-    textAlign: 'center',
-  },
   input: {
-    height: 50,
     borderWidth: 1,
-    borderRadius: 8,
-    marginBottom: 15,
-    paddingHorizontal: 10,
-  },
-  button: {
-    backgroundColor: '#007AFF',
-    padding: 15,
-    borderRadius: 8,
-    alignItems: 'center',
+    padding: 12,
     marginBottom: 10,
-  },
-  buttonDisabled: {
-    backgroundColor: '#007AFF80',
-  },
-  buttonText: {
-    color: '#fff',
+    borderRadius: 8,
     fontSize: 16,
-    fontWeight: '600',
   },
   link: {
-    textAlign: 'center',
-    marginTop: 10,
+    marginVertical: 8,
+    alignSelf: 'center',
+  },
+  linkText: {
+    fontSize: 16,
+    fontWeight: '500',
   },
 });
+
+export default Login;

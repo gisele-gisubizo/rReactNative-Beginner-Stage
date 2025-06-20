@@ -1,7 +1,7 @@
 import { Stack } from 'expo-router';
 import { useEffect, useState } from 'react';
 import { Appearance } from 'react-native';
-import { Colors } from '../constants/Colors';
+import { Colors } from '../constants/Colors.jsx';
 import * as Font from 'expo-font';
 import { AuthProvider } from '../context/AuthContext';
 import * as SplashScreen from 'expo-splash-screen';
@@ -69,9 +69,9 @@ export default function Layout() {
         <Stack.Screen name="index" options={{ title: 'Home', headerShown: true }} />
         <Stack.Screen name="login" options={{ title: 'Login', headerShown: true }} />
         <Stack.Screen name="sign-in" options={{ title: 'Sign Up', headerShown: true }} />
-        <Stack.Screen name="pet-foods" options={{ title: 'Pet Foods', headerShown: true }} />
-        <Stack.Screen name="food-details" options={{ title: 'Pet Food Details', headerShown: true }} />
-        <Stack.Screen name="crud" options={{ title: 'Manage Pet Foods', headerShown: true }} />
+        <Stack.Screen name="articles" options={{ title: 'Articles', headerShown: true }} />
+        <Stack.Screen name="article-details" options={{ title: 'Article Details', headerShown: true }} />
+        <Stack.Screen name="crud" options={{ title: 'Manage Articles', headerShown: true }} />
         <Stack.Screen name="dashboard" options={{ title: 'Dashboard', headerShown: true }} />
         <Stack.Screen name="settings" options={{ title: 'Settings', headerShown: true }} />
         <Stack.Screen name="about" options={{ title: 'About', headerShown: true }} />

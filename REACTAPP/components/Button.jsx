@@ -1,41 +1,51 @@
-import { Pressable, Text, StyleSheet, useColorScheme } from 'react-native';
-import { Colors } from '../constants/Colors';
+import { Pressable, StyleSheet, Text } from 'react-native';
+import PropTypes from 'prop-types';
+import { Colors } from '../constants/Colors.jsx';
+import { useTheme } from '../app/utils/useTheme';
 
-const Button = ({ title, onPress, style }) => {
-  const colorScheme = useColorScheme() || 'light';
+const Button = ({ title, onPress, style, disabled }) => {
+  const colorScheme = useTheme();
   const theme = Colors[colorScheme];
 
   return (
     <Pressable
+      onPress={onPress}
       style={({ pressed }) => [
         styles.button,
-        { backgroundColor: pressed ? theme.primary + '80' : theme.primary },
+        { backgroundColor: disabled ? theme.text + '33' : theme.primary },
+        pressed && !disabled && styles.pressed,
         style,
       ]}
-      onPress={onPress}
+      disabled={disabled}
     >
-      <Text style={[styles.text, { color: theme.title }]}>{title}</Text>
+      <Text style={styles.text}>{title}</Text>
     </Pressable>
   );
 };
 
-export default Button;
+Button.propTypes = {
+  title: PropTypes.string.isRequired,
+  onPress: PropTypes.func.isRequired,
+  style: PropTypes.oneOfType([PropTypes.object, PropTypes.array]),
+  disabled: PropTypes.bool,
+};
 
 const styles = StyleSheet.create({
   button: {
     padding: 12,
     borderRadius: 8,
     alignItems: 'center',
-    marginVertical: 10,
-    width: '100%',
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.2,
-    shadowRadius: 2,
-    elevation: 3,
+    justifyContent: 'center',
+    marginVertical: 8,
+  },
+  pressed: {
+    opacity: 0.7,
   },
   text: {
+    color: '#fff',
     fontSize: 16,
     fontWeight: '600',
   },
 });
+
+export default Button;

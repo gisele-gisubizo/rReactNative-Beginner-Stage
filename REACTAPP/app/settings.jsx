@@ -6,6 +6,7 @@ import { useAuth } from '../context/AuthContext';
 import { useRouter } from 'expo-router';
 import { Appearance } from 'react-native';
 
+
 const Settings = () => {
   const { width } = useWindowDimensions();
   const [theme, setTheme] = useState(Appearance.getColorScheme() || 'light');

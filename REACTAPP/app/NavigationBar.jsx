@@ -1,7 +1,7 @@
 import { View, TouchableOpacity, useColorScheme } from 'react-native';
 import { useRouter } from 'expo-router';
 import { MaterialIcons } from '@expo/vector-icons';
-import { Colors } from '../constants/Colors';
+import { Colors } from '../constants/Colors.jsx';
 import { useAuth } from '../context/AuthContext';
 
 const NavigationBar = () => {
@@ -47,29 +47,29 @@ const NavigationBar = () => {
         onPress={() => navigate('/')}
         disabled={!user}
       >
-        <MaterialIcons name="home" size={28} color={!user ? styles.disabledIcon.opacity : theme.text} />
+        <MaterialIcons name="home" size={28} color={!user ? styles.disabledIcon.opacity : colorScheme === 'dark' ? '#000' : theme.text} />
       </TouchableOpacity>
       {!user ? (
         <TouchableOpacity
           style={styles.iconContainer}
           onPress={() => navigate('/login')}
         >
-          <MaterialIcons name="account-circle" size={28} color={theme.text} />
+          <MaterialIcons name="account-circle" size={28} color={colorScheme === 'dark' ? '#000' : theme.text} />
         </TouchableOpacity>
       ) : (
         <>
           <TouchableOpacity
             style={styles.iconContainer}
-            onPress={() => navigate('/pet-foods')}
+            onPress={() => navigate('/articles')}
           >
-            <MaterialIcons name="fastfood" size={28} color={theme.text} />
+            <MaterialIcons name="article" size={28} color={colorScheme === 'dark' ? '#000' : theme.text} />
           </TouchableOpacity>
           {user && user.role === 'admin' && (
             <TouchableOpacity
               style={styles.iconContainer}
               onPress={() => navigate('/dashboard')}
             >
-              <MaterialIcons name="dashboard" size={28} color={theme.text} />
+              <MaterialIcons name="dashboard" size={28} color={colorScheme === 'dark' ? '#000' : theme.text} />
             </TouchableOpacity>
           )}
           {user && user.role === 'admin' && (
@@ -77,20 +77,20 @@ const NavigationBar = () => {
               style={styles.iconContainer}
               onPress={() => navigate('/crud')}
             >
-              <MaterialIcons name="edit" size={28} color={theme.text} />
+              <MaterialIcons name="edit" size={28} color={colorScheme === 'dark' ? '#000' : theme.text} />
             </TouchableOpacity>
           )}
           <TouchableOpacity
             style={styles.iconContainer}
             onPress={() => navigate('/settings')}
           >
-            <MaterialIcons name="settings" size={28} color={theme.text} />
+            <MaterialIcons name="settings" size={28} color={colorScheme === 'dark' ? '#000' : theme.text} />
           </TouchableOpacity>
           <TouchableOpacity
             style={styles.iconContainer}
             onPress={() => navigate('/about')}
           >
-            <MaterialIcons name="info" size={28} color={theme.text} />
+            <MaterialIcons name="info" size={28} color={colorScheme === 'dark' ? '#000' : theme.text} />
           </TouchableOpacity>
         </>
       )}

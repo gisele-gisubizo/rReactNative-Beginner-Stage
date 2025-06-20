@@ -1,9 +1,10 @@
-import { SafeAreaView, StyleSheet, Text, View, useColorScheme, useWindowDimensions } from 'react-native';
+import { SafeAreaView, StyleSheet, Text, View, useWindowDimensions } from 'react-native';
 import { Link } from 'expo-router';
-import { Colors } from '../constants/Colors';
+import { Colors } from '../constants/Colors.jsx';
+import { useTheme } from './utils/useTheme';
 
 const About = () => {
-  const colorScheme = useColorScheme() || 'light';
+  const colorScheme = useTheme();
   const theme = Colors[colorScheme];
   const { width } = useWindowDimensions();
 
@@ -11,9 +12,9 @@ const About = () => {
     <SafeAreaView style={[styles.container, { backgroundColor: theme.background }]}>
       <View style={[styles.content, { maxWidth: width > 400 ? 400 : width }]}>
         <View style={[styles.card, { backgroundColor: 'rgba(255, 255, 255, 0.1)' }]}>
-          <Text style={[styles.title, { color: theme.title }]}>About Pet Food Shop</Text>
+          <Text style={[styles.title, { color: theme.title }]}>About News Column</Text>
           <Text style={[styles.text, { color: theme.text }]}>
-            Since 2020, we’ve been providing premium pet food and supplies. Log in to manage your shop or sign up for exclusive offers!
+            Since 2020, we've been delivering the latest news articles. Log in to manage your newsroom or sign up for exclusive access!
           </Text>
           <Link href="/" style={[styles.link, { color: theme.primary }]}>
             <Text style={styles.linkText}>Back to Home</Text>
@@ -23,8 +24,6 @@ const About = () => {
     </SafeAreaView>
   );
 };
-
-export default About;
 
 const styles = StyleSheet.create({
   container: {
@@ -68,3 +67,5 @@ const styles = StyleSheet.create({
     fontWeight: '600',
   },
 });
+
+export default About;

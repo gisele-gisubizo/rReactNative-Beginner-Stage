@@ -1,6 +1,6 @@
 import { SafeAreaView, StyleSheet, Text, View, useColorScheme } from 'react-native';
 import { useState, useEffect } from 'react';
-import { Colors } from '../constants/Colors';
+import { Colors } from '../constants/Colors.jsx';
 import { useAuth } from '../context/AuthContext';
 import { useRouter } from 'expo-router';
 import Button from '../components/Button';
@@ -8,23 +8,29 @@ import Button from '../components/Button';
 const Dashboard = () => {
   const colorScheme = useColorScheme() || 'light';
   const theme = Colors[colorScheme];
-  const { user, signOut } = useAuth();
+  const { user, articles, signOut } = useAuth();
   const router = useRouter();
   const [stats, setStats] = useState({
-    totalPets: 5,
-    totalRevenue: 250,
-    activeUsers: 3,
-    recentActivity: ['Added Dog - $100', 'Updated Cat price'],
+    totalArticles: articles.length,
+    totalAuthors: new Set(articles.map(a => a.postedBy)).size,
+    activeUsers: 3, // Placeholder, update if backend provides
+    recentActivity: articles.slice(0, 2).map(a => `Posted "${a.title}"`),
   });
 
   useEffect(() => {
     if (!user || user.role !== 'admin') {
-      router.push('/pet-foods'); // Redirect non-admins to a user view
+      router.push('/articles');
     }
-  }, [user, router]);
+    setStats({
+      totalArticles: articles.length,
+      totalAuthors: new Set(articles.map(a => a.postedBy)).size,
+      activeUsers: 3,
+      recentActivity: articles.slice(0, 2).map(a => `Posted "${a.title}"`),
+    });
+  }, [user, router, articles]);
 
   if (!user || user.role !== 'admin') {
-    return null; // Prevent rendering if not authorized
+    return null;
   }
 
   const handleSignOut = () => {
@@ -38,10 +44,10 @@ const Dashboard = () => {
         <Text style={[styles.title, { color: theme.title }]}>Dashboard</Text>
         <Text style={[styles.subtitle, { color: theme.text }]}>Welcome, {user.name}!</Text>
         <View style={[styles.card, { backgroundColor: 'rgba(255, 255, 255, 0.1)' }]}>
-          <Text style={[styles.stat, { color: theme.text }]}>Total Pets: {stats.totalPets}</Text>
-          <Text style={[styles.stat, { color: theme.text }]}>Revenue: ${stats.totalRevenue}</Text>
+          <Text style={[styles.stat, { color: theme.text }]}>Total Articles: {stats.totalArticles}</Text>
+          <Text style={[styles.stat, { color: theme.text }]}>Total Authors: {stats.totalAuthors}</Text>
           <Text style={[styles.stat, { color: theme.text }]}>Active Users: {stats.activeUsers}</Text>
-          <Text style={[styles.status, { color: theme.text }]}>Status: Shop is Active</Text>
+          <Text style={[styles.status, { color: theme.text }]}>Status: Newsroom Active</Text>
           <Text style={[styles.sectionTitle, { color: theme.text }]}>Recent Activity:</Text>
           {stats.recentActivity.map((activity, index) => (
             <Text key={index} style={[styles.activity, { color: theme.text }]}>
@@ -54,8 +60,6 @@ const Dashboard = () => {
     </SafeAreaView>
   );
 };
-
-export default Dashboard;
 
 const styles = StyleSheet.create({
   container: {
@@ -112,3 +116,5 @@ const styles = StyleSheet.create({
     marginVertical: 2,
   },
 });
+
+export default Dashboard;

@@ -13,7 +13,7 @@ const Signup = () => {
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
-  const [role, setRole] = useState('user'); // Changed to lowercase
+  const [role, setRole] = useState('user');
   const [adminKey, setAdminKey] = useState('');
   const [error, setError] = useState('');
 
@@ -69,6 +69,7 @@ const Signup = () => {
   return (
     <SafeAreaView style={[styles.container, { backgroundColor: theme.background }]}>
       <View style={styles.content}>
+        <Text style={[styles.masthead, { color: theme.title }]}>News Column</Text>
         <Text style={[styles.title, { color: theme.title }]}>Sign Up</Text>
         {error ? <Text style={[styles.error, { color: '#FF3B30' }]}>{error}</Text> : null}
         <TextInput
@@ -109,13 +110,13 @@ const Signup = () => {
         <View style={styles.roleContainer}>
           <TouchableOpacity
             style={[styles.roleButton, role === 'user' && styles.selectedRole]}
-            onPress={() => setRole('user')} // Changed to lowercase
+            onPress={() => setRole('user')}
           >
             <Text style={[styles.roleText, { color: role === 'user' ? '#fff' : theme.text }]}>User</Text>
           </TouchableOpacity>
           <TouchableOpacity
             style={[styles.roleButton, role === 'admin' && styles.selectedRole]}
-            onPress={() => setRole('admin')} // Changed to lowercase
+            onPress={() => setRole('admin')}
           >
             <Text style={[styles.roleText, { color: role === 'admin' ? '#fff' : theme.text }]}>Admin</Text>
           </TouchableOpacity>
@@ -140,8 +141,6 @@ const Signup = () => {
   );
 };
 
-export default Signup;
-
 const styles = StyleSheet.create({
   container: {
     flex: 1,
@@ -149,6 +148,15 @@ const styles = StyleSheet.create({
   },
   content: {
     padding: 20,
+  },
+  masthead: {
+    fontFamily: 'Playfair Display',
+    fontWeight: '900',
+    fontSize: 40,
+    textAlign: 'center',
+    marginBottom: 20,
+    textTransform: 'uppercase',
+    letterSpacing: 1.5,
   },
   title: {
     fontWeight: '700',
@@ -207,3 +215,5 @@ const styles = StyleSheet.create({
     marginTop: 10,
   },
 });
+
+export default Signup;
