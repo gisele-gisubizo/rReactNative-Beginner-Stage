@@ -4,7 +4,7 @@ export default function Layout() {
   return (
     <Stack>
       <Stack.Screen
-        name="screens/register"
+        name="screens/EditPollScreen"
         options={{ title: 'Community Survey' }}
       />
     </Stack>
