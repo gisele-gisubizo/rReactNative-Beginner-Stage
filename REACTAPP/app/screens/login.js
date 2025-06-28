@@ -6,37 +6,76 @@ import {
   StyleSheet,
   TouchableOpacity,
   Image,
+  Alert,
 } from 'react-native';
 import Icon from 'react-native-vector-icons/Ionicons';
-
-import { Link, useRouter } from "expo-router";
+import { useRouter } from 'expo-router';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import axios from 'axios';
+import { API_URL } from '../../config'; 
 
 const Login = () => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [secureEntry, setSecureEntry] = useState(true);
+  const [isLoading, setIsLoading] = useState(false);
+  const router = useRouter();
 
   const togglePasswordVisibility = () => {
     setSecureEntry(!secureEntry);
   };
 
-  const handleLogin = () => {
-    console.log('Email:', email);
-    console.log('Password:', password);
+  const handleLogin = async () => {
+    setIsLoading(true);
+    try {
+      // Basic validation
+      if (!email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+        throw new Error('Please enter a valid email address');
+      }
+      if (!password) {
+        throw new Error('Password is required');
+      }
+
+      console.log('Attempting login to:', `${API_URL}/user/signin`);
+      console.log('Payload:', { email, password });
+
+      const response = await axios.post(`${API_URL}/user/signin`, {
+        email,
+        password,
+      });
+
+      console.log('Response:', { status: response.status, data: response.data });
+
+      if (!response.data.success) {
+        throw new Error(response.data.message || 'Login failed');
+      }
+
+      // Store token if provided
+      if (response.data.data?.token) {
+        await AsyncStorage.setItem('authToken', response.data.data.token);
+      }
+
+      Alert.alert('Success', 'Logged in successfully!', [
+        { text: 'OK', onPress: () => router.push('./home') }, // Adjust to your home route
+      ]);
+    } catch (error) {
+      console.error('Login error:', error.response?.data || error.message);
+      Alert.alert(
+        'Error',
+        error.response?.data?.message || error.message || 'Login failed. Please check your credentials.'
+      );
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   return (
     <View style={styles.container}>
       <View style={styles.formWrapper}>
-        <Image
-          source={require('../assets/poll4.png')}
-          style={styles.logo}
-        />
-
+        <Image source={require('../assets/poll4.png')} style={styles.logo} />
         <Text style={styles.logoText}>PollMaster</Text>
         <Text style={styles.subheading}>Sign in to your account</Text>
 
-        {/* Email Field */}
         <View style={styles.inputWrapper}>
           <TextInput
             placeholder="Email"
@@ -46,15 +85,10 @@ const Login = () => {
             autoCapitalize="none"
             placeholderTextColor="#6a11cb"
             style={styles.input}
-            // This makes placeholder bold on iOS & Android
-            // For Android: placeholderTextColor style controls color only,
-            // so bold placeholder needs a trick or external library.
-            // But here we do it via fontWeight.
           />
           <Icon name="mail-outline" size={20} color="#888" style={styles.iconRight} />
         </View>
 
-        {/* Password Field */}
         <View style={styles.inputWrapper}>
           <TextInput
             placeholder="Password"
@@ -74,26 +108,26 @@ const Login = () => {
           </TouchableOpacity>
         </View>
 
-        {/* Button */}
-        <TouchableOpacity onPress={handleLogin} style={styles.button}>
-          <Text style={styles.buttonText}>Sign In</Text>
+        <TouchableOpacity
+          style={[styles.button, isLoading && styles.buttonDisabled]}
+          onPress={handleLogin}
+          disabled={isLoading}
+        >
+          <Text style={styles.buttonText}>{isLoading ? 'Signing In...' : 'Sign In'}</Text>
         </TouchableOpacity>
 
-        {/* Signup Link */}
-        <Link href="/register">
-          <TouchableOpacity style={styles.signupLink}>
-            <Text style={styles.signupText}>
-              Don't have an account? <Text style={styles.signupTextBold}>Sign Up</Text>
-            </Text>
-          </TouchableOpacity>
-        </Link>
-       
+        <TouchableOpacity
+          style={styles.signupLink}
+          onPress={() => router.push('/register')}
+        >
+          <Text style={styles.signupText}>
+            Don't have an account? <Text style={styles.signupTextBold}>Sign Up</Text>
+          </Text>
+        </TouchableOpacity>
       </View>
     </View>
   );
 };
-
-export default Login;
 
 const styles = StyleSheet.create({
   container: {
@@ -112,7 +146,7 @@ const styles = StyleSheet.create({
     width: 90,
     height: 90,
     borderRadius: 60,
-    marginBottom: 8, 
+    marginBottom: 8,
     alignSelf: 'center',
   },
   logoText: {
@@ -136,7 +170,7 @@ const styles = StyleSheet.create({
     borderRadius: 8,
     marginBottom: 16,
     paddingHorizontal: 10,
-    backgroundColor: '#f9f9f9',
+    backgroundColor: '#fff',
   },
   input: {
     flex: 1,
@@ -149,11 +183,14 @@ const styles = StyleSheet.create({
     marginLeft: 8,
   },
   button: {
-    backgroundColor: '#895ccf',
+    backgroundColor: '#6a11cb',
     paddingVertical: 14,
     borderRadius: 8,
     alignItems: 'center',
     marginTop: 8,
+  },
+  buttonDisabled: {
+    backgroundColor: '#a688e2',
   },
   buttonText: {
     color: '#fff',
@@ -169,8 +206,9 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
   },
   signupTextBold: {
-  color: '#5b0eb3',       
-  fontWeight: '900',       
-},
-
+    color: '#5b0eb3',
+    fontWeight: '900',
+  },
 });
+
+export default Login;

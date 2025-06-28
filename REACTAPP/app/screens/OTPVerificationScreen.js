@@ -17,11 +17,9 @@ import { API_URL } from '../../config';
 
 // Zod schema for validation
 const otpSchema = z.number().int().min(100000, { message: 'OTP must be a 6-digit number' }).max(999999);
-const emailSchema = z.string().email({ message: 'Please enter a valid email address' });
 
 const OTPVerificationScreen = () => {
   const [otp, setOtp] = useState('');
-  const [email, setEmail] = useState('');
   const [loading, setLoading] = useState(false);
   const router = useRouter();
   const { email: emailFromParams } = useLocalSearchParams();
@@ -55,9 +53,11 @@ const OTPVerificationScreen = () => {
         throw new Error(data.message || 'Invalid OTP');
       }
 
-      Alert.alert('Success', 'Account verified! You can now log in.');
+      Alert.alert('Success', 'Account verified! You can now log in.', [
+        { text: 'OK', onPress: () => router.push('./login') }
+      ]);
       await AsyncStorage.removeItem('token');
-      router.push('/login');
+      await AsyncStorage.removeItem('signupEmail');
     } catch (error) {
       let errorMessage = 'Something went wrong. Please try again.';
       if (error instanceof z.ZodError) {
@@ -72,48 +72,12 @@ const OTPVerificationScreen = () => {
     }
   };
 
-  const handleResend = async () => {
-    setLoading(true);
-    try {
-      const emailToUse = email || emailFromParams;
-      if (!emailToUse) {
-        throw new Error('Email not provided. Please sign up again.');
-      }
-      emailSchema.parse(emailToUse);
-
-      console.log('Resending OTP for:', emailToUse);
-      const response = await fetch(`${API_URL}/user/resend-otp`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ email: emailToUse }),
-      });
-
-      const data = await response.json();
-      console.log('Resend OTP Response:', { status: response.status, data });
-
-      if (!response.ok) {
-        throw new Error(data.message || 'Failed to resend OTP. Try registering again or check your spam/junk folder.');
-      }
-
-      Alert.alert(
-        'Success',
-        'A new OTP has been sent to your email. Check your spam/junk folder if not received.'
-      );
-    } catch (error) {
-      let errorMessage =
-        'Failed to resend OTP. Please try registering again with a different email or check your spam/junk folder.';
-      if (error instanceof z.ZodError) {
-        errorMessage = error.errors[0].message;
-      } else if (error.message) {
-        errorMessage = error.message;
-      }
-      console.error('Resend OTP Error:', error);
-      Alert.alert('Error', errorMessage);
-    } finally {
-      setLoading(false);
-    }
+  const handleResendPrompt = () => {
+    Alert.alert(
+      'OTP Not Received',
+      'Please check your spam/junk folder. If the OTP is not there, try registering again with a different email.',
+      [{ text: 'OK', onPress: () => router.push('/register') }]
+    );
   };
 
   return (
@@ -141,16 +105,6 @@ const OTPVerificationScreen = () => {
             onChangeText={setOtp}
           />
 
-          <TextInput
-            style={styles.input}
-            keyboardType="email-address"
-            placeholder="Enter email to resend OTP"
-            placeholderTextColor="#999"
-            value={email}
-            onChangeText={setEmail}
-            autoCapitalize="none"
-          />
-
           <TouchableOpacity
             style={[styles.button, loading && styles.buttonDisabled]}
             onPress={handleSubmit}
@@ -159,10 +113,10 @@ const OTPVerificationScreen = () => {
             <Text style={styles.buttonText}>{loading ? 'Verifying...' : 'Verify'}</Text>
           </TouchableOpacity>
 
-          <TouchableOpacity onPress={handleResend} disabled={loading}>
+          <TouchableOpacity onPress={handleResendPrompt} disabled={loading}>
             <Text style={styles.resendText}>
               Didn't receive the code?{' '}
-              <Text style={styles.resendHighlight}>Resend</Text>
+              <Text style={styles.resendHighlight}>Try again</Text>
             </Text>
           </TouchableOpacity>
         </View>

@@ -9,16 +9,16 @@ import {
   Alert,
 } from 'react-native';
 import Icon from 'react-native-vector-icons/Ionicons';
-import { Link, useRouter } from 'expo-router';
+import { useRouter } from 'expo-router';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { API_URL } from '../../config'; // API_URL = 'http://10.232.213.40:5000'
+import axios from 'axios';
+import { API_URL } from '../../config';
 
 const Register = () => {
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [secureEntry, setSecureEntry] = useState(true);
-  const [error, setError] = useState(null);
   const [isLoading, setIsLoading] = useState(false);
   const router = useRouter();
 
@@ -26,8 +26,7 @@ const Register = () => {
     setSecureEntry(!secureEntry);
   };
 
-  const handleSignup = async () => {
-    setError(null);
+  const handleRegister = async () => {
     setIsLoading(true);
     try {
       // Enhanced local validation
@@ -44,47 +43,35 @@ const Register = () => {
       console.log('Attempting signup to:', `${API_URL}/user/signup`);
       console.log('Payload:', { name, email, password, role: 'user' });
 
-      const response = await fetch(`${API_URL}/user/signup`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          name,
-          email,
-          password,
-          role: 'user',
-        }),
+      const response = await axios.post(`${API_URL}/user/signup`, {
+        name,
+        email,
+        password,
+        role: 'user',
       });
 
-      const data = await response.json();
-      console.log('Response status:', response.status);
-      console.log('Response data:', data);
+      console.log('Response:', { status: response.status, data: response.data });
 
-      if (!response.ok) {
-        if (response.status === 400 && data.errors) {
-          const errorMessages = Object.values(data.errors).flat().join(', ');
-          throw new Error(errorMessages || 'Invalid input data');
-        }
-        throw new Error(data.message || `Signup failed with status ${response.status}`);
+      if (!response.data.success) {
+        throw new Error(response.data.message || 'Registration failed');
       }
 
-      // Store token if provided
-      if (data.data?.token) {
-        await AsyncStorage.setItem('token', data.data.token);
+      // Store token and email
+      if (response.data.data?.token) {
+        await AsyncStorage.setItem('token', response.data.data.token);
       }
+      await AsyncStorage.setItem('signupEmail', email);
 
       Alert.alert(
         'Success',
-        'Registration successful! Check your email (including spam/junk folder) for the OTP. If not received, try resending on the next screen or use a different email.'
+        'Registration successful! Check your email (including spam/junk folder) for the OTP. If not received, try registering again with a different email.',
+        [{ text: 'OK', onPress: () => router.push({ pathname: 'screens/OTPVerificationScreen', params: { email } }) }]
       );
-      router.push({ pathname: '/otp-verification', params: { email } });
-    } catch (err) {
-      console.error('Signup error:', err);
-      setError(err.message || 'Signup failed. Check server response or network.');
+    } catch (error) {
+      console.error('Registration error:', error.response?.data || error.message);
       Alert.alert(
         'Error',
-        err.message || 'Signup failed. Please try again with a different email or check your network.'
+        error.response?.data?.message || error.message || 'Registration failed. Try a different email or check your network.'
       );
     } finally {
       setIsLoading(false);
@@ -94,32 +81,21 @@ const Register = () => {
   return (
     <View style={styles.container}>
       <View style={styles.formWrapper}>
-        <Image
-          source={require('../assets/poll4.png')}
-          style={styles.logo}
-        />
+        <Image source={require('../assets/poll4.png')} style={styles.logo} />
         <Text style={styles.logoText}>PollMaster</Text>
         <Text style={styles.subheading}>Sign up to your account</Text>
 
-        {error && (
-          <Text style={styles.errorText}>{error}</Text>
-        )}
-
-        {/* Name Field */}
         <View style={styles.inputWrapper}>
           <TextInput
             placeholder="Full Name"
             value={name}
             onChangeText={setName}
-            keyboardType="default"
-            autoCapitalize="words"
             placeholderTextColor="#6a11cb"
             style={styles.input}
           />
           <Icon name="person-outline" size={20} color="#888" style={styles.iconRight} />
         </View>
 
-        {/* Email Field */}
         <View style={styles.inputWrapper}>
           <TextInput
             placeholder="Email"
@@ -133,7 +109,6 @@ const Register = () => {
           <Icon name="mail-outline" size={20} color="#888" style={styles.iconRight} />
         </View>
 
-        {/* Password Field */}
         <View style={styles.inputWrapper}>
           <TextInput
             placeholder="Password"
@@ -153,23 +128,22 @@ const Register = () => {
           </TouchableOpacity>
         </View>
 
-        {/* Button */}
         <TouchableOpacity
-          onPress={handleSignup}
+          onPress={handleRegister}
           style={[styles.button, isLoading && styles.buttonDisabled]}
           disabled={isLoading}
         >
           <Text style={styles.buttonText}>{isLoading ? 'Signing Up...' : 'Sign Up'}</Text>
         </TouchableOpacity>
 
-        {/* Login Link */}
-        <Link href="/login">
-          <TouchableOpacity style={styles.signupLink}>
-            <Text style={styles.signupText}>
-              Already have an account? <Text style={styles.signupTextBold}>Sign In</Text>
-            </Text>
-          </TouchableOpacity>
-        </Link>
+        <TouchableOpacity
+          style={styles.signupLink}
+          onPress={() => router.push('./login')}
+        >
+          <Text style={styles.signupText}>
+            Already have an account? <Text style={styles.signupTextBold}>Sign In</Text>
+          </Text>
+        </TouchableOpacity>
       </View>
     </View>
   );
@@ -216,7 +190,7 @@ const styles = StyleSheet.create({
     borderRadius: 8,
     marginBottom: 16,
     paddingHorizontal: 10,
-    backgroundColor: '#f9f9f9',
+    backgroundColor: '#fff',
   },
   input: {
     flex: 1,
@@ -229,7 +203,7 @@ const styles = StyleSheet.create({
     marginLeft: 8,
   },
   button: {
-    backgroundColor: '#895ccf',
+    backgroundColor: '#6a11cb',
     paddingVertical: 14,
     borderRadius: 8,
     alignItems: 'center',
@@ -252,15 +226,8 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
   },
   signupTextBold: {
-    color: '#6a11cb',
-    fontWeight: 'bold',
-    textDecorationLine: 'underline',
-  },
-  errorText: {
-    color: 'red',
-    textAlign: 'center',
-    marginBottom: 16,
-    fontSize: 14,
+    color: '#5b0eb3',
+    fontWeight: '900',
   },
 });
 
