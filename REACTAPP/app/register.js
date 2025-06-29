@@ -12,9 +12,10 @@ import Icon from 'react-native-vector-icons/Ionicons';
 import { useRouter } from 'expo-router';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import axios from 'axios';
-import { API_URL } from '../../config'; 
+import { API_URL } from '../config';
 
-const Login = () => {
+const Register = () => {
+  const [name, setName] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [secureEntry, setSecureEntry] = useState(true);
@@ -25,44 +26,52 @@ const Login = () => {
     setSecureEntry(!secureEntry);
   };
 
-  const handleLogin = async () => {
+  const handleRegister = async () => {
     setIsLoading(true);
     try {
-      // Basic validation
+      // Enhanced local validation
+      if (!name || name.length < 2) {
+        throw new Error('Name must be at least 2 characters');
+      }
       if (!email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
-        throw new Error('Please enter a valid email address');
+        throw new Error('Please enter a valid email address (e.g., user@example.com)');
       }
-      if (!password) {
-        throw new Error('Password is required');
+      if (!password || password.length < 8 || !/[a-z]/.test(password) || !/[A-Z]/.test(password) || !/\d/.test(password)) {
+        throw new Error('Password must be at least 8 characters with one lowercase, one uppercase, and one number');
       }
 
-      console.log('Attempting login to:', `${API_URL}/user/signin`);
-      console.log('Payload:', { email, password });
+      console.log('Attempting signup to:', `${API_URL}/user/signup`);
+      console.log('Payload:', { name, email, password, role: 'user' });
 
-      const response = await axios.post(`${API_URL}/user/signin`, {
+      const response = await axios.post(`${API_URL}/user/signup`, {
+        name,
         email,
         password,
+        role: 'user',
       });
 
       console.log('Response:', { status: response.status, data: response.data });
 
       if (!response.data.success) {
-        throw new Error(response.data.message || 'Login failed');
+        throw new Error(response.data.message || 'Registration failed');
       }
 
-      // Store token if provided
+      // Store token and email
       if (response.data.data?.token) {
-        await AsyncStorage.setItem('authToken', response.data.data.token);
+        await AsyncStorage.setItem('token', response.data.data.token);
       }
+      await AsyncStorage.setItem('signupEmail', email);
 
-      Alert.alert('Success', 'Logged in successfully!', [
-        { text: 'OK', onPress: () => router.push('./home') }, // Adjust to your home route
-      ]);
+      Alert.alert(
+        'Success',
+        'Registration successful! Check your email (including spam/junk folder) for the OTP. If not received, try registering again with a different email.',
+        [{ text: 'OK', onPress: () => router.push({ pathname: 'screens/OTPVerificationScreen', params: { email } }) }]
+      );
     } catch (error) {
-      console.error('Login error:', error.response?.data || error.message);
+      console.error('Registration error:', error.response?.data || error.message);
       Alert.alert(
         'Error',
-        error.response?.data?.message || error.message || 'Login failed. Please check your credentials.'
+        error.response?.data?.message || error.message || 'Registration failed. Try a different email or check your network.'
       );
     } finally {
       setIsLoading(false);
@@ -72,9 +81,20 @@ const Login = () => {
   return (
     <View style={styles.container}>
       <View style={styles.formWrapper}>
-        <Image source={require('../assets/poll4.png')} style={styles.logo} />
+        <Image source={require('../app/assets/poll4.png')} style={styles.logo} />
         <Text style={styles.logoText}>PollMaster</Text>
-        <Text style={styles.subheading}>Sign in to your account</Text>
+        <Text style={styles.subheading}>Sign up to your account</Text>
+
+        <View style={styles.inputWrapper}>
+          <TextInput
+            placeholder="Full Name"
+            value={name}
+            onChangeText={setName}
+            placeholderTextColor="#6a11cb"
+            style={styles.input}
+          />
+          <Icon name="person-outline" size={20} color="#888" style={styles.iconRight} />
+        </View>
 
         <View style={styles.inputWrapper}>
           <TextInput
@@ -109,19 +129,19 @@ const Login = () => {
         </View>
 
         <TouchableOpacity
+          onPress={handleRegister}
           style={[styles.button, isLoading && styles.buttonDisabled]}
-          onPress={handleLogin}
           disabled={isLoading}
         >
-          <Text style={styles.buttonText}>{isLoading ? 'Signing In...' : 'Sign In'}</Text>
+          <Text style={styles.buttonText}>{isLoading ? 'Signing Up...' : 'Sign Up'}</Text>
         </TouchableOpacity>
 
         <TouchableOpacity
           style={styles.signupLink}
-          onPress={() => router.push('/register')}
+          onPress={() => router.push('./login')}
         >
           <Text style={styles.signupText}>
-            Don't have an account? <Text style={styles.signupTextBold}>Sign Up</Text>
+            Already have an account? <Text style={styles.signupTextBold}>Sign In</Text>
           </Text>
         </TouchableOpacity>
       </View>
@@ -211,4 +231,4 @@ const styles = StyleSheet.create({
   },
 });
 
-export default Login;
+export default Register;

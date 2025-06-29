@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { View, Text, StyleSheet, FlatList, TouchableOpacity, Button, Alert } from 'react-native';
-import Spacer from '../../components/Spacer';
+import Spacer from '../components/Spacer';
 
 const PollPreviewScreen = () => {
   const [selectedOptions, setSelectedOptions] = useState([]);

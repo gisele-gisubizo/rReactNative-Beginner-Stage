@@ -85,7 +85,7 @@ export default function SplashScreen() {
 
         <View style={styles.header}>
           <Image
-            source={require('../assets/poll3.png')}
+            source={require('../app/assets/poll3.png')}
             style={styles.logo}
           />
           <Text style={styles.title}>PollMaster</Text>

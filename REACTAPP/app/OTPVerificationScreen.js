@@ -13,7 +13,7 @@ import { LinearGradient } from 'expo-linear-gradient';
 import { useRouter, useLocalSearchParams } from 'expo-router';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { z } from 'zod';
-import { API_URL } from '../../config';
+import { API_URL } from '../config';
 
 // Zod schema for validation
 const otpSchema = z.number().int().min(100000, { message: 'OTP must be a 6-digit number' }).max(999999);
