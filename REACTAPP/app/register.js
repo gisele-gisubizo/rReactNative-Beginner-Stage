@@ -65,7 +65,7 @@ const Register = () => {
       Alert.alert(
         'Success',
         'Registration successful! Check your email (including spam/junk folder) for the OTP. If not received, try registering again with a different email.',
-        [{ text: 'OK', onPress: () => router.push({ pathname: 'screens/OTPVerificationScreen', params: { email } }) }]
+        [{ text: 'OK', onPress: () => router.push({ pathname: './OTPVerificationScreen', params: { email } }) }]
       );
     } catch (error) {
       console.error('Registration error:', error.response?.data || error.message);
