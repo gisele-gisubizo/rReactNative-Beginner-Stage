@@ -22,7 +22,7 @@ const OTPVerificationScreen = () => {
   const [otp, setOtp] = useState('');
   const [loading, setLoading] = useState(false);
   const router = useRouter();
-  const { email: emailFromParams } = useLocalSearchParams();
+  const { email: emailFromParams, role } = useLocalSearchParams(); // Get email and role
 
   const handleSubmit = async () => {
     setLoading(true);
@@ -53,11 +53,17 @@ const OTPVerificationScreen = () => {
         throw new Error(data.message || 'Invalid OTP');
       }
 
-      Alert.alert('Success', 'Account verified! You can now log in.', [
-        { text: 'OK', onPress: () => router.push('./login') }
+      // Redirect based on role
+      const redirectPath = role === 'admin' ? './AdminDashboard' : './Home';
+      Alert.alert('Success', 'Account verified! Redirecting...', [
+        {
+          text: 'OK',
+          onPress: async () => {
+            await AsyncStorage.removeItem('signupEmail'); // Remove signupEmail but keep token
+            router.push(redirectPath);
+          },
+        },
       ]);
-      await AsyncStorage.removeItem('token');
-      await AsyncStorage.removeItem('signupEmail');
     } catch (error) {
       let errorMessage = 'Something went wrong. Please try again.';
       if (error instanceof z.ZodError) {

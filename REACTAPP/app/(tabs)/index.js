@@ -4,28 +4,41 @@ import {
   Text,
   StyleSheet,
   ScrollView,
-  TouchableOpacity,
   Dimensions,
   Pressable,
 } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
-import Icon from 'react-native-vector-icons/Ionicons';
+import { Ionicons } from '@expo/vector-icons';
 import Spacer from '../../components/Spacer';
 import { Link } from 'expo-router';
 
 const { width } = Dimensions.get('window');
 
+// Colors matching EnterCodeScreen gradient and variants
+const progressColors = ['#6a11cb', '#2575fc', '#4b2db9', '#3a56cc'];
+
 const PollMasterHome = () => {
+  const livePolls = [
+    { label: 'JavaScript', percent: '45%' },
+    { label: 'Python', percent: '35%' },
+    { label: 'Java', percent: '20%' },
+  ];
+
   return (
     <ScrollView style={styles.container} showsVerticalScrollIndicator={false}>
       <Spacer />
+
       {/* Welcome Banner */}
-      <LinearGradient colors={['#6a11cb', '#2575fc']} style={styles.banner}>
+      <LinearGradient colors={['#6a11cb', '#4632a8']} style={styles.banner}>
         <Text style={styles.bannerTitle}>Welcome back, Sarah! 👋</Text>
         <Text style={styles.bannerSubtitle}>Let’s create something amazing today.</Text>
         <View style={styles.tagRow}>
-          <View style={styles.tag}><Text style={styles.tagText}>🔥 5-day streak</Text></View>
-          <View style={styles.tag}><Text style={styles.tagText}>🏆 Top creator</Text></View>
+          <View style={styles.tag}>
+            <Text style={styles.tagText}>🔥 5-day streak</Text>
+          </View>
+          <View style={styles.tag}>
+            <Text style={styles.tagText}>🏆 Top creator</Text>
+          </View>
         </View>
       </LinearGradient>
 
@@ -44,23 +57,30 @@ const PollMasterHome = () => {
           <Text style={styles.statValue}>12</Text>
           <Text style={styles.statLabel}>Active Polls</Text>
         </View>
-        <Pressable style={styles.statCardTouchable}>
-          <Text style={styles.statAction}>📋 Copy Poll Code</Text>
-        </Pressable>
+        <Link href="/(tabs)/EnterCodeScreen" asChild>
+          <Pressable style={styles.statCardTouchable}>
+            <Ionicons name="key-outline" size={20} color="#6a11cb" />
+            <Text style={styles.statAction}>Enter Code</Text>
+          </Pressable>
+        </Link>
       </View>
 
       {/* Live Polls */}
       <View style={styles.section}>
         <Text style={styles.sectionTitle}>📊 Live Polls</Text>
-        {[
-          { label: 'JavaScript', percent: '45%' },
-          { label: 'Python', percent: '35%' },
-          { label: 'Java', percent: '20%' },
-        ].map((item, index) => (
+        {livePolls.map((item, index) => (
           <View key={index} style={styles.pollItem}>
             <Text style={styles.pollLabel}>{item.label}</Text>
             <View style={styles.progressBarBg}>
-              <View style={[styles.progressBar, { width: item.percent }]} />
+              <View
+                style={[
+                  styles.progressBar,
+                  {
+                    width: item.percent,
+                    backgroundColor: progressColors[index % progressColors.length],
+                  },
+                ]}
+              />
             </View>
           </View>
         ))}
@@ -75,7 +95,7 @@ const PollMasterHome = () => {
           'Poll "Work from home" ended',
         ].map((activity, i) => (
           <View key={i} style={styles.activityCard}>
-            <Icon name="checkmark-circle-outline" size={20} color="#6a11cb" />
+            <Ionicons name="checkmark-done-outline" size={22} color="#6a11cb" />
             <Text style={styles.activityText}>{activity}</Text>
           </View>
         ))}
@@ -89,47 +109,54 @@ export default PollMasterHome;
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#f4f4f4',
+    backgroundColor: '#f9f8ff',
     paddingHorizontal: 16,
   },
   banner: {
-    borderRadius: 20,
-    padding: 20,
-    marginVertical: 16,
-    elevation: 4,
+    borderRadius: 24,
+    padding: 24,
+    marginVertical: 20,
+    shadowColor: '#6a11cb',
+    shadowOpacity: 0.3,
+    shadowRadius: 10,
+    shadowOffset: { width: 0, height: 4 },
   },
   bannerTitle: {
-    fontSize: 24,
-    fontWeight: 'bold',
+    fontSize: 26,
+    fontWeight: '800',
     color: '#fff',
   },
   bannerSubtitle: {
     fontSize: 16,
-    color: '#e0e0e0',
-    marginVertical: 10,
+    color: '#e8e6fc',
+    marginTop: 6,
   },
   tagRow: {
     flexDirection: 'row',
     gap: 10,
-    marginTop: 8,
+    marginTop: 14,
   },
   tag: {
-    backgroundColor: '#ffffff33',
-    borderRadius: 20,
-    paddingVertical: 4,
-    paddingHorizontal: 12,
+    backgroundColor: '#ffffff40',
+    borderRadius: 16,
+    paddingVertical: 6,
+    paddingHorizontal: 14,
   },
   tagText: {
     color: '#fff',
     fontSize: 12,
-    fontWeight: 'bold',
+    fontWeight: '600',
   },
   createPollBtn: {
     backgroundColor: '#6a11cb',
-    paddingVertical: 14,
-    borderRadius: 12,
+    paddingVertical: 16,
+    borderRadius: 14,
     alignItems: 'center',
-    marginTop: 10,
+    marginTop: 12,
+    shadowColor: '#6a11cb',
+    shadowOpacity: 0.25,
+    shadowRadius: 6,
+    shadowOffset: { height: 2 },
   },
   createPollText: {
     color: '#fff',
@@ -140,26 +167,35 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'space-between',
     gap: 12,
-    marginVertical: 16,
+    marginTop: 24,
   },
   statCard: {
     flex: 1,
     backgroundColor: '#fff',
-    padding: 16,
-    borderRadius: 12,
+    padding: 20,
+    borderRadius: 16,
     alignItems: 'center',
-    elevation: 3,
+    shadowColor: '#ddd',
+    shadowOpacity: 0.4,
+    shadowRadius: 6,
+    elevation: 4,
   },
   statCardTouchable: {
     flex: 1,
-    backgroundColor: '#eee',
-    padding: 16,
-    borderRadius: 12,
+    backgroundColor: '#f0eaff',
+    padding: 20,
+    borderRadius: 16,
     alignItems: 'center',
     justifyContent: 'center',
+    flexDirection: 'row',
+    gap: 8,
+    shadowColor: '#ccc',
+    shadowOpacity: 0.3,
+    shadowRadius: 6,
+    elevation: 4,
   },
   statValue: {
-    fontSize: 22,
+    fontSize: 24,
     fontWeight: 'bold',
     color: '#6a11cb',
   },
@@ -169,44 +205,49 @@ const styles = StyleSheet.create({
     marginTop: 4,
   },
   statAction: {
+    fontSize: 15,
     fontWeight: '600',
     color: '#6a11cb',
   },
   section: {
-    marginTop: 20,
+    marginTop: 28,
   },
   sectionTitle: {
-    fontSize: 18,
+    fontSize: 20,
     fontWeight: '700',
-    marginBottom: 12,
+    marginBottom: 16,
     color: '#333',
   },
   pollItem: {
-    marginBottom: 12,
+    marginBottom: 14,
   },
   pollLabel: {
     fontSize: 14,
     fontWeight: '600',
     marginBottom: 4,
+    color: '#444',
   },
   progressBarBg: {
     height: 14,
-    backgroundColor: '#ddd',
+    backgroundColor: '#e6dcfb', // Light purple background for bars
     borderRadius: 8,
     overflow: 'hidden',
   },
   progressBar: {
     height: 14,
-    backgroundColor: '#6a11cb',
+    borderRadius: 8,
   },
   activityCard: {
     flexDirection: 'row',
     alignItems: 'center',
     backgroundColor: '#fff',
-    padding: 12,
-    borderRadius: 10,
+    padding: 14,
+    borderRadius: 12,
     marginBottom: 10,
-    elevation: 1,
+    shadowColor: '#ddd',
+    shadowOpacity: 0.2,
+    shadowRadius: 4,
+    elevation: 2,
   },
   activityText: {
     fontSize: 14,

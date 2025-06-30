@@ -12,7 +12,7 @@ import Icon from 'react-native-vector-icons/Ionicons';
 import { useRouter } from 'expo-router';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import axios from 'axios';
-import { API_URL } from '../config'; 
+import { API_URL } from '../config';
 
 const Login = () => {
   const [email, setEmail] = useState('');
@@ -51,9 +51,11 @@ const Login = () => {
 
       if (response.data.data?.token) {
         await AsyncStorage.setItem('authToken', response.data.data.token);
-        console.log('Navigating to:', '(tabs)');
+        await AsyncStorage.setItem('userRole', response.data.data.user.role); // Store role
+        console.log('Navigating to:', response.data.data.user.role === 'admin' ? './AdminDashboard' : '(tabs)');
         try {
-          router.push('(tabs)');
+          const redirectPath = response.data.data.user.role === 'admin' ? './AdminDashboard' : '(tabs)';
+          router.push(redirectPath);
         } catch (navError) {
           console.error('Navigation error:', navError.message);
           Alert.alert('Navigation Error', 'Could not navigate to home screen. Check route configuration.');
@@ -111,8 +113,8 @@ const Login = () => {
         </View>
 
         <TouchableOpacity
-          style={[styles.button, isLoading && styles.buttonDisabled]}
           onPress={handleLogin}
+          style={[styles.button, isLoading && styles.buttonDisabled]}
           disabled={isLoading}
         >
           <Text style={styles.buttonText}>{isLoading ? 'Signing In...' : 'Sign In'}</Text>

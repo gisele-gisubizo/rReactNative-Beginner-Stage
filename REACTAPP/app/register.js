@@ -7,6 +7,7 @@ import {
   TouchableOpacity,
   Image,
   Alert,
+  Switch,
 } from 'react-native';
 import Icon from 'react-native-vector-icons/Ionicons';
 import { useRouter } from 'expo-router';
@@ -18,6 +19,7 @@ const Register = () => {
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [isAdmin, setIsAdmin] = useState(false); // New state for role selection
   const [secureEntry, setSecureEntry] = useState(true);
   const [isLoading, setIsLoading] = useState(false);
   const router = useRouter();
@@ -40,14 +42,15 @@ const Register = () => {
         throw new Error('Password must be at least 8 characters with one lowercase, one uppercase, and one number');
       }
 
+      const role = isAdmin ? 'admin' : 'user'; // Set role based on switch
       console.log('Attempting signup to:', `${API_URL}/user/signup`);
-      console.log('Payload:', { name, email, password, role: 'user' });
+      console.log('Payload:', { name, email, password, role });
 
       const response = await axios.post(`${API_URL}/user/signup`, {
         name,
         email,
         password,
-        role: 'user',
+        role,
       });
 
       console.log('Response:', { status: response.status, data: response.data });
@@ -61,11 +64,12 @@ const Register = () => {
         await AsyncStorage.setItem('token', response.data.data.token);
       }
       await AsyncStorage.setItem('signupEmail', email);
+      await AsyncStorage.setItem('userRole', role); // Store role for later use
 
       Alert.alert(
         'Success',
         'Registration successful! Check your email (including spam/junk folder) for the OTP. If not received, try registering again with a different email.',
-        [{ text: 'OK', onPress: () => router.push({ pathname: './OTPVerificationScreen', params: { email } }) }]
+        [{ text: 'OK', onPress: () => router.push({ pathname: './OTPVerificationScreen', params: { email, role } }) }]
       );
     } catch (error) {
       console.error('Registration error:', error.response?.data || error.message);
@@ -126,6 +130,16 @@ const Register = () => {
               style={styles.iconRight}
             />
           </TouchableOpacity>
+        </View>
+
+        <View style={styles.switchWrapper}>
+          <Text style={styles.switchLabel}>Register as Admin</Text>
+          <Switch
+            value={isAdmin}
+            onValueChange={setIsAdmin}
+            trackColor={{ false: '#ccc', true: '#6a11cb' }}
+            thumbColor={isAdmin ? '#fff' : '#f4f3f4'}
+          />
         </View>
 
         <TouchableOpacity
@@ -201,6 +215,17 @@ const styles = StyleSheet.create({
   },
   iconRight: {
     marginLeft: 8,
+  },
+  switchWrapper: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    marginBottom: 16,
+  },
+  switchLabel: {
+    fontSize: 16,
+    color: '#6a11cb',
+    fontWeight: 'bold',
   },
   button: {
     backgroundColor: '#6a11cb',
